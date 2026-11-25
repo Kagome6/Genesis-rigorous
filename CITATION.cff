@@ -1,0 +1,26 @@
+cff-version: 1.2.0
+message: "If you use this software or its numerical verification benchmarks, please cite it as below."
+type: software
+title: "An Unconstrained, U(N) Gauge-Invariant Numerical Framework for Emergent Geometry, Entanglement Area Laws, and Matter Couplings in Matrix Quantum Mechanics (Genesis-Rigorous v1.0.0)"
+version: 1.0.0
+date-released: 2026-11-25
+license: MIT
+authors:
+  - name: "Alpha496"
+doi: "10.5281/zenodo.24528178"
+# repository-code: "https://github.com/YOUR_USERNAME/project-genesis-rigorous"
+keywords:
+  - matrix quantum mechanics
+  - emergent spacetime
+  - quantum entanglement
+  - ryu-takayanagi
+  - emergent gravity
+  - fuzzy sphere
+  - chiral fermions
+  - computational theoretical physics
+abstract: >-
+  An open-source, strictly U(N) gauge-invariant PyTorch CUDA computational physics testbed
+  unifying Hartree-Fock-Bogoliubov (HFB) matrix wave-packets, exact 2-flavor Bogoliubov-de Gennes
+  (BdG) link fermions, U(N)-singlet Gauss-law edge modes, adjoint Dirac matter backreaction,
+  O(N^3) matrix-native large-N scaling, emergent U(2) Higgs gauge bosons, and topologically
+  protected Ginsparg-Wilson chiral fermion generations on consumer GPUs.

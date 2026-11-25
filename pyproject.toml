@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=65.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "genesis-rigorous"
+version = "1.0.0"
+description = "Project Genesis-Rigorous: Zero-Cheat Matrix Quantum Mechanics x Entanglement Emergent Spacetime, Gravity, Gauge Bosons & Chiral Matter Laboratory"
+readme = "EMERGENT_SPACETIME_RESEARCH_SPEC.md"
+requires-python = ">=3.10"
+dependencies = [
+    "torch>=2.0",
+    "numpy>=1.24",
+    "matplotlib>=3.7",
+    "psutil>=5.9",
+]
+
+[project.scripts]
+genesis-rigorous = "genesis_cli:main"
+
+[tool.setuptools.packages.find]
+include = ["genesis_rigorous*"]
