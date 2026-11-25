@@ -1,0 +1,60 @@
+# Local release archive directory (upload to Zenodo, do not push ZIPs to GitHub)
+release/
+*.zip
+
+# Python caches & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Large PyTorch binary checkpoints (keep locally / archive in Zenodo if needed, exclude from Git!)
+*.pt
+*.pth
+*.h5
+*.npz
+
+# Local IDE / OS artifacts
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# LaTeX build intermediates
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.log
+paper/*.out
+paper/*.toc
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.synctex.gz
+
+# Ad-hoc scratch / superseded retry runs
+results/unified_suite_*/
+results/phase1_N8_20261125_172753/
+results/phase1_N8_20261125_173001/
+results/phase1_N8_20261125_173152/
+results/phase3b_largeN_20261125_181447/
+results/phase3d_4d_chiral_20261125_181828/
+results/phase3d_4d_chiral_20261125_182048/
+
+# Personal local reference images (do not publish to public GitHub/Zenodo)
+リポジトリの構成例.png
+統合式の参考画像.png
+関連する他の研究数式の参考画像.png
+
+# Legacy pre-unification standalone scripts (superseded by genesis_rigorous/ + genesis_cli.py)
+qm_spacetime_genesis.py
+genesis_core.py
+genesis_run_phase1.py
+genesis_stage3_gravity.py
+genesis_phase3a_realtime_gravity.py
+genesis_phase3b_largeN.py
+genesis_phase3c_gauge_bosons.py
+genesis_phase3d_chiral_fermions.py

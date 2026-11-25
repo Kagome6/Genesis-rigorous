@@ -329,7 +329,7 @@ def plot_phase1_dashboard(N: int, uni_A, uni_B, probe_A, probe_B, qrf_A, qrf_B, 
     lim = probe_B["lim"]
     im = ax.imshow(probe_B["slice_2d"], origin="lower", extent=[-lim, lim, -lim, lim], cmap="inferno_r", aspect="equal")
     plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04, label="min |lambda(D_probe)|")
-    ax.set_title(f"2. Stage 2A: Point-Probe Slice (z=0, r_best={probe_B['r_best']:.2f})", fontsize=10)
+    ax.set_title(f"2. Stage 2A: Point-Probe Slice z=0 (Bright Ring = Manifold, r={probe_B['r_best']:.2f})", fontsize=9.5)
 
     ax = axes[0, 2]
     ax.plot(probe_A["r_vals"], probe_A["radial_lmin"], "r--", lw=2.0, label="Universe A (No Shell)")
@@ -350,15 +350,18 @@ def plot_phase1_dashboard(N: int, uni_A, uni_B, probe_A, probe_B, qrf_A, qrf_B, 
     Ms = np.array([r["M"] for r in qrf_B["results_M"]], dtype=float)
     sA = np.array([r["obj_opt"] for r in qrf_A["results_M"]], dtype=float)
     sB = np.array([r["obj_opt"] for r in qrf_B["results_M"]], dtype=float)
+    sB_tn = np.array([r["S_tn"] for r in qrf_B["results_M"]], dtype=float)
     sA_sym, sB_sym = 0.5 * (sA + sA[::-1]), 0.5 * (sB + sB[::-1])
     cap = np.sqrt(Ms * (N - Ms))
     if np.max(cap) > 0 and np.max(sB_sym) > 0:
         cap = cap * (np.max(sB_sym) / np.max(cap))
-    ax.plot(Ms, sA_sym, "r--x", lw=2.0, label="Universe A (Chaos)")
-    ax.plot(Ms, sB_sym, "b-o", lw=2.3, label=f"Universe B Sym S_min (r={qrf_B['area_law_stats']['corr_S_sym']:.3f})")
-    ax.plot(Ms, cap, "k:", lw=1.8, label="2D Area-Law ~ sqrt(M(N-M))")
+    ax.plot(Ms, sA_sym, "r--x", lw=1.8, label="Universe A (Chaos)")
+    ax.plot(Ms, sB, "c:s", lw=1.6, ms=4, label="Univ B Raw 4-Block S_EE(M) (Asym)")
+    ax.plot(Ms, sB_sym, "b-o", lw=2.2, label=f"Univ B Sym S_bar(M) (r={qrf_B['area_law_stats']['corr_S_sym']:.3f})")
+    ax.plot(Ms, sB_tn, "g-^", lw=1.8, ms=4.5, label=f"Univ B Raw S_TN(M) (r={qrf_B['area_law_stats']['corr_S_tn']:.3f})")
+    ax.plot(Ms, cap, "k:", lw=1.6, label="2D Area-Law ~ sqrt(M(N-M))")
     ax.set_title("5. Stage 2B: Minimal Entanglement vs Subregion Rank M", fontsize=10); ax.set_xticks(Ms)
-    ax.legend(loc="best", fontsize=7.5); ax.grid(True, alpha=0.3)
+    ax.legend(loc="best", fontsize=7.0); ax.grid(True, alpha=0.3)
 
     ax = axes[1, 2]
     lam_A, lam_B = np.array(qrf_A["laplacian_evals"]), np.array(qrf_B["laplacian_evals"])

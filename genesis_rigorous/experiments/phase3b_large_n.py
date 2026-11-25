@@ -33,12 +33,15 @@ def relax_large_n_universe(
         dt, prev_Y, prev_G = 0.008, None, None
         for step in range(n_steps):
             do_q = (step % 6 == 0) or (step >= n_steps - 25)
+            if step == n_steps - 25:
+                dt = max(dt, 0.004)
+                prev_Y, prev_G = None, None
             if do_q:
                 E0, G, _ = core.total_energy_and_grad(Y, g=g, mu=mu, nu=nu, kappa=kappa, g1=g1, g2=g2, compute_grad=True)
             else:
                 E0, G = core.classical_energy_and_grad(Y, g=g, mu=mu, nu=nu)
             gn = float(torch.sqrt(torch.real(torch.sum(G * G.conj()))))
-            if gn < 1e-4 and step > 60:
+            if do_q and gn < 1e-4 and step > 60:
                 break
             if prev_Y is not None and prev_G is not None:
                 sY, dG = Y - prev_Y, G - prev_G
@@ -94,8 +97,9 @@ def run_phase3b_large_n_experiment(
         tn = time.time()
         core = MatrixNativeQuantumCore(N=N, D=3, guard=guard)
         scales = [2.0, 18.0, 30.0, 45.0]
+        n_st = 520 if N >= 32 else 420
         uA = relax_large_n_universe(core, nu_A, g, mu, kappa, g1, g2, scales[:2], n_steps=160, seed_base=101 + N)
-        uB = relax_large_n_universe(core, nu_B, g, mu, kappa, g1, g2, scales, n_steps=420, seed_base=202 + N)
+        uB = relax_large_n_universe(core, nu_B, g, mu, kappa, g1, g2, scales, n_steps=n_st, seed_base=202 + N)
         ram_mb, vram_mb = guard.check_runtime()
         print(
             f"[3B N={N:2d}] Chaos A: Tr(Y^2)={uA['diag']['tr_Y2']:5.2f} | Emergent B: E={uB['E_tot']:11.1f}, "
@@ -110,23 +114,53 @@ def run_phase3b_large_n_experiment(
         del core
         guard.cleanup()
 
-    # Plot summary figure
-    fig, axes = plt.subplots(1, 2, figsize=(14.0, 5.4), dpi=140)
-    fig.suptitle(f"Project Genesis-Rigorous (Unified Phase 3B): O(N^3) Large-N Continuum Limit ({N_list})", fontsize=13.5, fontweight="bold", y=0.98)
+    # Plot honest 4-panel (2x2) summary figure distinguishing single-sphere vs metastable multi-sphere basins
+    fig, axes = plt.subplots(2, 2, figsize=(14.5, 10.2), dpi=140)
+    fig.suptitle(f"Genesis-Rigorous v1.0.1 — Phase 3B: O(N^3) Matrix-Native Large-N Scaling ({N_list})", fontsize=13.5, fontweight="bold", y=0.98)
     Ns = np.array([r["N"] for r in records], dtype=float)
+    Et = np.array([r["uni_B"]["E_tot"] for r in records], dtype=float)
+    al = np.array([r["uni_B"]["diag"]["alpha_fit"] for r in records], dtype=float)
+    sp = np.array([r["uni_B"]["diag"]["r2_spread_rel"] for r in records], dtype=float)
     rB = np.array([r["uni_B"]["r_best"] for r in records], dtype=float)
     gT = np.array([0.5 * (r["uni_B"]["g_evals"][1] + r["uni_B"]["g_evals"][2]) for r in records], dtype=float)
-    axes[0].plot(Ns, gT, "bo", ms=8, label="Measured Provost-Vallee g_tang(N)")
-    axes[0].plot(Ns, (0.5 * Ns) / (2.0 * np.maximum(rB, 1e-6) ** 2), "r--", lw=2.0, label="Continuum Theory (N/2)/(2 r^2)")
-    axes[0].set_title("1. Emergent Metric Scaling g_tang(N)"); axes[0].set_xlabel("N"); axes[0].legend(); axes[0].grid(True, alpha=0.3)
+    is_single = sp < 0.05
+
+    edens = Et / (Ns * (Ns ** 2 - 1.0))
+    axes[0, 0].plot(Ns, edens, "k:", lw=1.2, alpha=0.5)
+    if np.any(is_single):
+        axes[0, 0].scatter(Ns[is_single], edens[is_single], c="royalblue", s=70, zorder=4, label="Single Irreducible S^2")
+    if np.any(~is_single):
+        axes[0, 0].scatter(Ns[~is_single], edens[~is_single], c="darkorange", marker="^", s=75, zorder=4, label="Metastable Multi-Sphere")
+    axes[0, 0].set_title("1. Normalized Energy Density E_tot / [N(N^2 - 1)]\n(Single-Sphere Ground State vs Metastable Basins)")
+    axes[0, 0].set_xlabel("Matrix Size N"); axes[0, 0].set_ylabel("E_tot / [N(N^2-1)]"); axes[0, 0].legend(fontsize=8); axes[0, 0].grid(True, alpha=0.3)
+
+    alpha_cl = (nu_B + np.sqrt(nu_B * nu_B - 2.0 * mu * mu)) / (2.0 * g)
+    axes[0, 1].axhline(alpha_cl, color="k", ls="--", lw=1.5, label=f"Classical Limit alpha_cl = {alpha_cl:.4f}")
+    if np.any(is_single):
+        axes[0, 1].scatter(1.0 / Ns[is_single], al[is_single], c="royalblue", s=70, zorder=4, label="Single S^2 alpha(N)")
+    if np.any(~is_single):
+        axes[0, 1].scatter(1.0 / Ns[~is_single], al[~is_single], c="darkorange", marker="^", s=75, zorder=4, label="Multi-Sphere alpha(N)")
+    axes[0, 1].set_title("2. Emergent su(2) Scale alpha(N) vs 1/N\n(O(N^3) Engine with Exact (D-1)/D 1-Loop Factor)")
+    axes[0, 1].set_xlabel("1 / N"); axes[0, 1].set_ylabel("alpha(N)"); axes[0, 1].legend(fontsize=8); axes[0, 1].grid(True, alpha=0.3)
+
+    g_th = (0.5 * Ns) / (2.0 * np.maximum(rB, 1e-6) ** 2)
+    axes[1, 0].plot(Ns, g_th, "r--", lw=1.8, label="Exact Single-S^2 Theory N/(4 r^2)")
+    if np.any(is_single):
+        axes[1, 0].scatter(Ns[is_single], gT[is_single], c="royalblue", s=70, zorder=4, label="Measured g_tang (Single S^2)")
+    if np.any(~is_single):
+        axes[1, 0].scatter(Ns[~is_single], gT[~is_single], c="darkorange", marker="^", s=75, zorder=4, label="Measured g_tang (Multi-Sphere)")
+    axes[1, 0].set_title("3. Provost-Vallee Tangential Metric g_tang(N)\n(Matches Continuum N/(4 r^2) on Single-Sphere Basins)")
+    axes[1, 0].set_xlabel("Matrix Size N"); axes[1, 0].set_ylabel("g_tang"); axes[1, 0].legend(fontsize=8); axes[1, 0].grid(True, alpha=0.3)
 
     rmax = records[-1]
     lam_n = np.array(rmax["uni_B"]["laplacian_first64"]) / max(rmax["uni_B"]["diag"]["alpha_fit"] ** 2, 1e-12)
     ex = [l * (l + 1) for l in range(8) for _ in range(2 * l + 1)][:len(lam_n)]
-    axes[1].plot(range(len(lam_n)), lam_n, "bo", ms=4.5, label=f"Emergent Delta_Y / alpha^2 (N={rmax['N']})")
-    axes[1].plot(range(len(lam_n)), ex, "r-", lw=1.6, label="Exact S^2 Harmonics l(l+1)")
-    axes[1].set_title(f"2. Spherical Harmonics at N={rmax['N']}"); axes[1].legend(); axes[1].grid(True, alpha=0.3)
-    plt.tight_layout(rect=[0, 0, 1, 0.92]); plt.savefig(os.path.join(out_dir, "phase3b_largeN_dashboard.png"), dpi=150); plt.close(fig)
+    axes[1, 1].plot(range(len(lam_n)), lam_n, "bo", ms=4.2, label=f"Emergent Delta_Y / alpha^2 (N={rmax['N']})")
+    axes[1, 1].plot(range(len(lam_n)), ex, "r-", lw=1.6, label="Exact S^2 Harmonics l(l+1)")
+    axes[1, 1].set_title(f"4. Emergent Spherical Harmonic Spectrum at N={rmax['N']}\n(First 64 Modes, Exact 2l+1 Degeneracies)")
+    axes[1, 1].set_xlabel("Mode Index k"); axes[1, 1].set_ylabel("lambda_k / alpha^2"); axes[1, 1].legend(fontsize=8); axes[1, 1].grid(True, alpha=0.3)
+
+    plt.tight_layout(rect=[0, 0, 1, 0.94]); plt.savefig(os.path.join(out_dir, "phase3b_largeN_dashboard.png"), dpi=150); plt.close(fig)
 
     report = {"timestamp": ts, "out_dir": out_dir, "records": records, "elapsed_sec": time.time() - t0}
     with open(os.path.join(out_dir, "phase3b_report.json"), "w", encoding="utf-8") as f:

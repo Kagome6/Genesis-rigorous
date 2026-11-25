@@ -83,7 +83,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_rt.add_argument("--state-pt", type=str, default="")
     p_rt.add_argument("--M-body", type=float, default=35.0)
     p_rt.add_argument("--M-pulse", type=float, default=120.0)
-    p_rt.add_argument("--n-steps", type=int, default=420)
+    p_rt.add_argument("--n-steps", type=int, default=450)
     p_rt.add_argument("--out-dir", type=str, default="")
 
     # large-n (Phase 3B)

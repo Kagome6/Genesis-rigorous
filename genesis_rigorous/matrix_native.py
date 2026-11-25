@@ -105,13 +105,16 @@ class MatrixNativeQuantumCore:
             U_eig = None
         lam = torch.clamp(lam, min=0.0)
 
-        # Separate decoupled k=0 U(1) trace mode from k=1..N^2-1 interacting SU(N) modes
+        # Separate decoupled k=0 U(1) trace mode from k=1..N^2-1 interacting SU(N) modes.
+        # Exact diagonal YM Hessian block is H2_{II} = mu^2 I + g^2 sum_{J!=I} ad_{Y_J}^2,
+        # whose isotropic average across I=1..D carries exact factor (D-1)/D on Delta_Y.
         lam_su = lam[1:]
         g2v = g * g
+        c_lap = float(self.D - 1) / float(self.D)
         coeff_h = 2.0 * g2v * (self.D - 1) * float(self.N)
         M_eff_sq = mu * mu + 1.0
         for _ in range(40):
-            om_su = torch.sqrt(torch.clamp(m * (M_eff_sq + g2v * lam_su), min=1e-12))
+            om_su = torch.sqrt(torch.clamp(m * (M_eff_sq + c_lap * g2v * lam_su), min=1e-12))
             sig2_su = float(torch.mean(0.5 / om_su))
             M_new = mu * mu + coeff_h * sig2_su
             if abs(M_new - M_eff_sq) < 1e-14 * max(M_new, 1.0):
@@ -119,13 +122,13 @@ class MatrixNativeQuantumCore:
                 break
             M_eff_sq = 0.7 * M_new + 0.3 * M_eff_sq
 
-        om_su = torch.sqrt(torch.clamp(m * (M_eff_sq + g2v * lam_su), min=1e-12))
+        om_su = torch.sqrt(torch.clamp(m * (M_eff_sq + c_lap * g2v * lam_su), min=1e-12))
         om_tr = torch.tensor([np.sqrt(m) * mu], dtype=self.rdtype, device=self.device)
         om = torch.cat([om_tr, om_su], dim=0)
         sig2_su = float(torch.mean(0.5 / om_su))
 
         E_kin = float(0.25 * self.D / m * torch.sum(om))
-        E_fluc_pot = float(0.25 * self.D * torch.sum((mu * mu + g2v * lam) / om))
+        E_fluc_pot = float(0.25 * self.D * torch.sum((mu * mu + c_lap * g2v * lam) / om))
         E_ym4 = 0.5 * g2v * self.D * (self.D - 1) * self.N * (self.N2 - 1) * (sig2_su ** 2)
         E_1loop = E_kin + E_fluc_pot + E_ym4
 
@@ -135,7 +138,7 @@ class MatrixNativeQuantumCore:
         grad_q = None
         if compute_grad:
             dE_bos = torch.zeros_like(lam)
-            dE_bos[1:] = 0.25 * self.D * g2v / om_su
+            dE_bos[1:] = 0.25 * self.D * c_lap * g2v / om_su
             dE_dlam = dE_bos + kappa * Nf * (1.0 - f_v / torch.sqrt(f_v * f_v + 1.0)) * (g1 + 2.0 * g2 * lam)
             U_mats = U_eig.T.reshape(self.N2, self.N, self.N)
             U_dag = U_mats.conj().transpose(-2, -1)

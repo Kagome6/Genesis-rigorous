@@ -2,6 +2,26 @@
 
 All notable scientific and engineering milestones of **Project Genesis-Rigorous** are documented in this file.
 
+## [1.0.1] - 2026-11-25
+
+### Fixed (External Peer-Review & Mathematical Audit Overhaul)
+- **Exact $(D-1)/D$ Isotropic 1-Loop Factor in $O(N^3)$ Engine (`genesis_rigorous/matrix_native.py`)**:
+  - Corrected the diagonal Yang–Mills Hessian isotropic average factor from $g^2 \Delta_Y$ to $\frac{D-1}{D} g^2 \Delta_Y$ (reflecting $[Y_I, Y_I] = 0$, i.e. $2/3$ in $D=3$ and $5/6$ in $D=6$) across `om_su`, `E_fluc_pot`, and the envelope-theorem gradient `dE_bos`.
+  - Closed the `T13` audit blind spot in `genesis_rigorous/verification.py` by adding an explicit non-zero $Y$ Hessian trace identity check $\mathrm{Tr}(H^{(2)}_{\mathrm{YM}}) = (D-1)g^2 \mathrm{Tr}(\Delta_Y)$ verified to `1.87e-16` alongside the exact $Y=0$ HFB match.
+- **Far-Field Causal Light-Cone Fit (`genesis_rigorous/experiments/phase3a_dynamics.py`, `genesis_cli.py`)**:
+  - Restricted the Phase 3A causal wavefront velocity fit to the far-field window $\theta \in [85^\circ, 160^\circ]$ outside the finite-$N$ noncommutative wave-packet overlap plateau ($\theta \le 80^\circ$), revealing a sharper linear light cone ($r = 0.9983$, $c_{\mathrm{onset}} = 1.483\;\mathrm{rad}/t$) honestly below the bare Yang–Mills dispersion bound $g\alpha = 2.808\;\mathrm{rad}/t$.
+  - Synchronized default real-time step count to `n_steps = 450` across CLI and experiment module.
+- **Coulomb-Branch Matrix Higgs Terminology & Mode-Tracked Spectrum (`genesis_rigorous/experiments/phase3c_gauge.py`)**:
+  - Replaced the imprecise "Spontaneous Symmetry Breaking" plot label with "Coulomb-Branch Matrix Higgs Splitting (External Brane Separation $v$)" since $+\frac{1}{2}\mu^2 \mathrm{Tr}(X_4^2)$ ($\mu=1$) is confining rather than flat/Mexican-hat.
+  - Eliminated branch-crossing zigzag artifacts in the Phase 3C mode-spectrum plot by explicitly tracking diagonal $U(1)^2$ and off-diagonal $W^\pm$ lowest and first KK branches.
+- **Figure–Text–Table Consistency Across All 7 Publication Figures**:
+  - Fixed Phase 1 Panel 2 caption (`Bright Yellow Ring` for `inferno_r`) and added raw 4-block asymmetric $S_{\mathrm{EE}}(M)$, symmetrized $\bar{S}_{\mathrm{EE}}(M)$, and raw $S_{\mathrm{TN}}(M)$ curves to Panel 5.
+  - Fixed Stage 3 Panel 6 to plot the exact $M=4$ blind hemisphere $\cos\theta$ (`-0.585 → -0.903`) matching Table 5, and added physical discussion of why local metric density $\sqrt{\det g_N}$ drives $+27.8\%$ North-cap $S_{\mathrm{EE}}$ growth despite embedded perimeter contraction.
+  - Re-ran Phase 3B ($N=16, 20, 24, 32$) and Phase 3D ($D=6, N=16$ & chiral $q=0\dots 3$) with the corrected $(D-1)/D$ engine and updated all dashboard titles and LaTeX captions to match the exact rendered panels.
+- **Packaging & Documentation Fixes**:
+  - Fixed `pyproject.toml` (`readme = "README.md"`, `py-modules = ["genesis_cli"]`, `version = "1.0.1"`) so `pip install .` and `pip install -e .` succeed cleanly from the GitHub layout.
+  - Fixed relative link in `docs/ARCHITECTURE.md` and synchronized CLI commands in `paper/genesis_rigorous_report.tex` Section 8.
+
 ## [1.0.0] - 2026-11-25
 
 ### Added

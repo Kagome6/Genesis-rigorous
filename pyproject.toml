@@ -4,9 +4,9 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "genesis-rigorous"
-version = "1.0.0"
-description = "Project Genesis-Rigorous: Zero-Cheat Matrix Quantum Mechanics x Entanglement Emergent Spacetime, Gravity, Gauge Bosons & Chiral Matter Laboratory"
-readme = "EMERGENT_SPACETIME_RESEARCH_SPEC.md"
+version = "1.0.1"
+description = "Unconstrained, U(N) gauge-invariant PyTorch/CUDA numerical framework for emergent geometry, entanglement area laws, and matter couplings in matrix quantum mechanics"
+readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "torch>=2.0",
@@ -17,6 +17,9 @@ dependencies = [
 
 [project.scripts]
 genesis-rigorous = "genesis_cli:main"
+
+[tool.setuptools]
+py-modules = ["genesis_cli"]
 
 [tool.setuptools.packages.find]
 include = ["genesis_rigorous*"]

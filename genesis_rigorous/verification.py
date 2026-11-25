@@ -218,7 +218,7 @@ def run_master_verification(prefer_cuda: bool = True) -> Dict[str, object]:
     rel_dk = max(fd_errs) / max(float(torch.max(torch.abs(g_sph))), 1e-12)
     record("T12", "Daleckii-Krein Grad on Degenerate Sphere", (not torch.isnan(g_sph).any()) and rel_dk < 1e-7, f"RelErr={rel_dk:.2e}")
 
-    # T13 & T14: Phase 3B O(N^3) Matrix-Native Core Exact Match & Envelope Gradient
+    # T13 & T14: Phase 3B O(N^3) Matrix-Native Core Exact Match (Y=0 & Y!=0 Hessian Trace) & Envelope Gradient
     native = MatrixNativeQuantumCore(N=N, D=3, guard=guard)
     Ecl_n, _ = native.classical_energy_and_grad(Y_r, g=g_t, mu=mu_t, nu=nu_t)
     Ecl_ref = e1["E_cl"] + 0.5 * mu_t * mu_t * float(torch.sum(y_r * y_r))
@@ -226,8 +226,13 @@ def run_master_verification(prefer_cuda: bool = True) -> Dict[str, object]:
     Om_z, Sx_z, _, _ = core.solve_hfb_omega(y_zero, g=g_t, mu=mu_t, nu=0.0, max_iter=30, tol=1e-13)
     ez_ref = core.mqm_quantum_energy(y_zero, Om_z, Sx_z, g=g_t, mu=mu_t, nu=0.0)["E_mqm"]
     ez_nat = native.solve_1loop_hfb_and_bdg(core.vec_to_mats(y_zero), g=g_t, mu=mu_t, kappa=0.0, compute_grad=False)["E_1loop"]
-    err_nat = max(abs(Ecl_n - Ecl_ref), abs(qn["E_tn"] - float(Etn1)), abs(ez_nat - ez_ref))
-    record("T13", "O(N^3) Matrix-Native Exact Match vs HFB", err_nat < 1e-10, f"MaxErr={err_nat:.2e}")
+    # Non-zero Y audit: exact trace identity Tr(H2_YM) == D * ((D-1)/D) * g^2 * Tr(Delta_Y)
+    H2_ref, _ = core.build_h2_and_kloop(y_r, Sx_z, g=g_t, mu=mu_t, nu=nu_t)
+    tr_h2_ym_ref = float(torch.trace(H2_ref) - core.nB * (mu_t * mu_t))
+    tr_h2_ym_nat = float(3.0 * (2.0 / 3.0) * (g_t * g_t) * torch.sum(qn["lam"]))
+    err_tr = abs(tr_h2_ym_ref - tr_h2_ym_nat) / max(abs(tr_h2_ym_ref), 1e-12)
+    err_nat = max(abs(Ecl_n - Ecl_ref), abs(qn["E_tn"] - float(Etn1)), abs(ez_nat - ez_ref), err_tr)
+    record("T13", "O(N^3) Engine vs HFB (Y=0) & Y!=0 Tr(H2)", err_nat < 1e-10, f"MaxErr={err_nat:.2e} (TrH2={err_tr:.2e})")
 
     En1, Gn1, _ = native.total_energy_and_grad(Y_r, g=g_t, mu=mu_t, nu=nu_t, kappa=0.2, g1=0.5, g2=0.1)
     En2, _, _ = native.total_energy_and_grad(Y_rot, g=g_t, mu=mu_t, nu=nu_t, kappa=0.2, g1=0.5, g2=0.1, compute_grad=False)

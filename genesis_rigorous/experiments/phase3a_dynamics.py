@@ -24,7 +24,7 @@ from ..safety import HardwareSafetyGuard, SafetyConfig, safe_eigvalsh
 @torch.no_grad()
 def run_phase3a_dynamics_experiment(
     state_pt: str = "", m_psi: float = 0.5, M_body: float = 35.0, M_pulse: float = 120.0,
-    dt: float = 0.004, n_steps: int = 420, out_dir: str = "", prefer_cuda: bool = True
+    dt: float = 0.004, n_steps: int = 450, out_dir: str = "", prefer_cuda: bool = True
 ) -> Dict[str, object]:
     if not state_pt:
         cands = sorted(glob.glob(os.path.join("results", "*phase1_N8*", "phase1_states.pt")))
@@ -153,35 +153,44 @@ def run_phase3a_dynamics_experiment(
     win = (ts_arr >= 0.04) & (ts_arr <= 1.35)
     t_win, q2_w = ts_arr[win], q2_arr[win]
     t_onset = [float(t_win[int(np.argmax(q2_w[:, j] >= 0.15 * max(float(np.max(q2_w[:, j])), 1e-12)))]) for j in range(len(thetas))]
-    fit_m = (thetas >= np.radians(25.0)) & (thetas <= np.radians(165.0))
-    slope, _ = np.polyfit(thetas[fit_m], np.array(t_onset)[fit_m], 1)
-    c_ang = float(1.0 / max(slope, 1e-12))
+    t_peak = [float(t_win[int(np.argmax(q2_w[:, j]))]) for j in range(len(thetas))]
+    # Fit strictly in the causal far-field window [85, 160] deg outside the finite-N NC packet overlap plateau (<= 80 deg)
+    fit_m = (thetas >= np.radians(85.0)) & (thetas <= np.radians(160.0))
+    slope_on, int_on = np.polyfit(thetas[fit_m], np.array(t_onset)[fit_m], 1)
+    c_ang = float(1.0 / max(slope_on, 1e-12))
     r_lc = float(np.corrcoef(thetas[fit_m], np.array(t_onset)[fit_m])[0, 1])
+    slope_pk, int_pk = np.polyfit(thetas[fit_m], np.array(t_peak)[fit_m], 1)
+    c_pk = float(1.0 / max(slope_pk, 1e-12))
+    r_pk = float(np.corrcoef(thetas[fit_m], np.array(t_peak)[fit_m])[0, 1])
     c_th = g * alpha_bg
-    print(f"  [3A-2 LIGHT CONE] Energy drift={rel_cons:.2e} | c_ang={c_ang:.3f} rad/t (r={r_lc:.4f}) vs g*alpha={c_th:.3f} (ratio={c_ang/c_th:.3f})")
+    print(f"  [3A-2 LIGHT CONE] Energy drift={rel_cons:.2e} | Causal [85-160 deg]: c_onset={c_ang:.3f} rad/t (r={r_lc:.4f}), c_peak={c_pk:.3f} rad/t (r={r_pk:.4f}) vs g*alpha={c_th:.3f}")
 
     # Save 3-panel summary figure
-    fig, axes = plt.subplots(1, 3, figsize=(18.0, 5.5), dpi=140)
-    fig.suptitle(f"Project Genesis-Rigorous (Unified Phase 3A, N={N}): 2-Body Gravity & Real-Time Light Cone", fontsize=13.5, fontweight="bold", y=0.98)
+    fig, axes = plt.subplots(1, 3, figsize=(18.5, 5.6), dpi=140)
+    fig.suptitle(f"Genesis-Rigorous v1.0.1 — Phase 3A (N={N}): Two-Body Attraction & Far-Field Causal Light Cone", fontsize=13.5, fontweight="bold", y=0.98)
     axes[0].plot([r["theta_deg"] for r in recs_2b], [r["V_grav"] for r in recs_2b], "b-o", lw=2.3, label="Curved V_grav(theta)")
     axes[0].plot([r["theta_deg"] for r in recs_2b], [r["V_frozen_control"] for r in recs_2b], "r--x", label="Frozen Control")
-    axes[0].axhline(0, color="k", ls=":"); axes[0].set_title("1. Two-Body Emergent Gravity"); axes[0].legend(); axes[0].grid(True, alpha=0.3)
+    axes[0].axhline(0, color="k", ls=":"); axes[0].set_title("1. Two-Body Emergent Gravity"); axes[0].set_xlabel("Angular Separation [deg]"); axes[0].legend(); axes[0].grid(True, alpha=0.3)
 
     q2_n = q2_arr / max(float(np.max(q2_arr)), 1e-12)
     im = axes[1].imshow(np.log10(np.maximum(q2_n, 1e-5)).T, origin="lower", aspect="auto", extent=[ts_arr[0], ts_arr[-1], 0, 180], cmap="magma", vmin=-4, vmax=0)
     plt.colorbar(im, ax=axes[1], fraction=0.046, pad=0.04)
-    axes[1].set_title("2. Real-Time Emergent Light Cone"); axes[1].set_xlabel("Time t"); axes[1].set_ylabel("theta [deg]")
+    axes[1].set_title("2. Real-Time Emergent Light Cone"); axes[1].set_xlabel("Time t"); axes[1].set_ylabel("Polar Angle theta [deg]")
 
-    axes[2].plot(np.degrees(thetas), t_onset, "ro-", label=f"Onset c={c_ang:.2f} rad/t (r={r_lc:.3f})")
-    axes[2].plot(np.degrees(thetas), 0.06 + thetas / c_th, "k:", lw=2.0, label=f"YM Theory g*alpha={c_th:.2f}")
-    axes[2].set_title("3. Emergent Speed of Light Fit"); axes[2].set_xlabel("theta [deg]"); axes[2].legend(); axes[2].grid(True, alpha=0.3)
+    th_deg_arr = np.degrees(thetas)
+    axes[2].axvspan(0.0, 80.0, color="gray", alpha=0.18, label="Finite-N NC Overlap Plateau (<=80 deg)")
+    axes[2].plot(th_deg_arr, t_onset, "ro-", lw=1.8, ms=4.5, label=f"15% Onset [85-160 deg]: c={c_ang:.2f} rad/t (r={r_lc:.3f})")
+    axes[2].plot(th_deg_arr, t_peak, "b^--", lw=1.6, ms=4.5, label=f"Wave Peak [85-160 deg]: c={c_pk:.2f} rad/t (r={r_pk:.3f})")
+    axes[2].plot(th_deg_arr[fit_m], int_on + slope_on * thetas[fit_m], "r:", lw=2.0)
+    axes[2].plot(th_deg_arr, 0.06 + thetas / c_th, "k:", lw=1.8, label=f"YM Dispersion Limit g*alpha={c_th:.2f}")
+    axes[2].set_title("3. Causal Wave Velocity Fit (Far-Field 85-160 deg)"); axes[2].set_xlabel("Polar Angle theta [deg]"); axes[2].set_ylabel("Arrival Time t"); axes[2].legend(fontsize=7.5); axes[2].grid(True, alpha=0.3)
     plt.tight_layout(rect=[0, 0, 1, 0.92]); plt.savefig(os.path.join(out_dir, "phase3a_dynamics_dashboard.png"), dpi=150); plt.close(fig)
 
     ram_mb, vram_mb = guard.check_runtime()
     report = {
         "N": N, "timestamp": ts, "out_dir": out_dir,
         "two_body": {"V_grav_near": recs_2b[0]["V_grav"], "max_frozen_err": max(abs(r["V_frozen_control"]) for r in recs_2b), "records": recs_2b},
-        "light_cone": {"rel_energy_conservation": rel_cons, "c_ang_onset": c_ang, "c_ang_theory": c_th, "r_corr": r_lc},
+        "light_cone": {"rel_energy_conservation": rel_cons, "fit_window_deg": [85.0, 160.0], "c_ang_onset": c_ang, "r_corr_onset": r_lc, "c_ang_peak": c_pk, "r_corr_peak": r_pk, "c_ang_theory": c_th},
         "stats": {"elapsed_sec": time.time() - t0, "ram_mb": ram_mb, "vram_mb": vram_mb},
     }
     with open(os.path.join(out_dir, "phase3a_report.json"), "w", encoding="utf-8") as f:
