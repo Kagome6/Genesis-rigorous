@@ -122,3 +122,13 @@ python genesis_cli.py chiral
 5. H. C. Steinacker, *"Quantum Geometry, Matrix Theory, and Gravity"*, Cambridge University Press (2024).
 6. H. Grosse, C. Klimčík, & P. Prešnajder, *"Topologically nontrivial field configurations in noncommutative geometry"*, *Commun. Math. Phys.* **178**, 507 (1996).
 7. A. Chatzistavrakidis, H. Steinacker, & G. Zoupanos, *"Intersecting branes and a standard model realization in matrix models"*, *JHEP* **09** (2011) 115, [`arXiv:1107.0265`](https://arxiv.org/abs/1107.0265).
+
+---
+
+## 7. AI Collaboration & Transparency Statement
+
+This repository and its accompanying technical report were developed through an interactive human–AI research collaboration between the human author (**Alpha496**) and **Google Gemini** (using the Antigravity agentic coding environment).
+
+- **Role of AI**: Assisted with mathematical cross-checking, PyTorch/CUDA numerical implementation, debugging of matrix-model edge cases (e.g., gauge-orbit zero-mode projection and Daleckii–Krein derivative stabilization), automated verification-suite construction, and drafting of English/Japanese documentation.
+- **Role & Responsibility of the Human Author**: Conceived the project scope, directed all research decisions and external-audit revisions, executed and inspected the numerical benchmarks on local hardware, and assumes full responsibility for the scientific accuracy, honest scope boundaries, and published artifacts.
+- **Reproducibility First**: No numerical claim in this project relies on AI assertions alone; every result is independently verifiable from source via the deterministic 17-test mathematical audit suite (`python genesis_cli.py verify`) and the reproducible CLI experiments documented above.
