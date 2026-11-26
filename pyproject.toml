@@ -4,13 +4,14 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "genesis-rigorous"
-version = "1.0.1"
-description = "Unconstrained, U(N) gauge-invariant PyTorch/CUDA numerical framework for emergent geometry, entanglement area laws, and matter couplings in matrix quantum mechanics"
+version = "1.1.0"
+description = "Unconstrained, U(N) gauge-invariant PyTorch/CUDA numerical framework for emergent geometry, entanglement area laws, matter couplings, random-law ecosystems, and non-perturbative matrix bootstrap in MQM"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "torch>=2.0",
     "numpy>=1.24",
+    "scipy>=1.11",
     "matplotlib>=3.7",
     "psutil>=5.9",
 ]

@@ -1,9 +1,9 @@
 cff-version: 1.2.0
 message: "If you use this software or its numerical verification benchmarks, please cite it as below."
 type: software
-title: "An Unconstrained, U(N) Gauge-Invariant Numerical Framework for Emergent Geometry, Entanglement Area Laws, and Matter Couplings in Matrix Quantum Mechanics (Genesis-Rigorous v1.0.1)"
-version: 1.0.1
-date-released: 2026-11-25
+title: "An Unconstrained, U(N) Gauge-Invariant Numerical Framework for Emergent Geometry, Entanglement Area Laws, Random-Law Ecosystems, and Matrix Bootstrap in Matrix Quantum Mechanics (Genesis-Rigorous v1.1.0)"
+version: 1.1.0
+date-released: 2026-11-26
 license: MIT
 authors:
   - name: "Alpha496"

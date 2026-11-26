@@ -2,30 +2,25 @@
 # -*- coding: utf-8 -*-
 """
 ================================================================================
-PROJECT GENESIS-RIGOROUS — UNIFIED CLI ENTRYPOINT (genesis_cli.py)
+PROJECT GENESIS-RIGOROUS v1.1.0 — UNIFIED CLI ENTRYPOINT (genesis_cli.py)
 ================================================================================
 Zero-Cheat Matrix Quantum Mechanics x Quantum Entanglement Laboratory for
-Emergent Spacetime, Gravity, Non-Abelian Gauge Bosons & Chiral Fermions.
+Emergent Spacetime, Gravity, Non-Abelian Gauge Bosons, Chiral Fermions,
+Random-Law Ecosystems, and Non-Perturbative Matrix Bootstrap.
 
 Subcommands:
-  verify     Run all 17 exact mathematical & gauge-invariance self-tests (<5s)
-  phase1     Dual-Universe phase transition + Point-Probe + Blind QRF Area Law
-  gravity    Stage 3 localized Adjoint Dirac matter curvature & surface deflection
-  realtime   Phase 3A two-body emergent gravity attraction & real-time light cone
-  large-n    Phase 3B O(N^3) matrix-native continuum scaling (N=16, 20, 24, 32)
-  gauge      Phase 3C emergent U(2) gauge bosons & Matrix Higgs U(2)->U(1)xU(1)
-  chiral     Phase 3D 4D S^2xS^2 emergence & Atiyah-Singer chiral generations
-  suite      Run fast end-to-end showcase across verify + phase1 + gauge + chiral
-
-Examples:
-  python genesis_cli.py verify
-  python genesis_cli.py phase1 --N 8
-  python genesis_cli.py gravity --state-pt results/.../phase1_states.pt
-  python genesis_cli.py realtime --state-pt results/.../phase1_states.pt
-  python genesis_cli.py large-n --Ns 16,20,24,32
-  python genesis_cli.py gauge --n-sphere 6
-  python genesis_cli.py chiral
-  python genesis_cli.py suite --fast
+  verify         Run all 20 exact mathematical, gauge-invariance & bootstrap audits (<6s)
+  phase1         Dual-Universe phase transition + Point-Probe + Blind QRF Area Law
+  gravity        Stage 3 localized Adjoint Dirac matter curvature & surface deflection
+  realtime       Phase 3A two-body emergent gravity attraction & real-time light cone
+  large-n        Phase 3B O(N^3) matrix-native continuum scaling (N=16, 20, 24, 32)
+  gauge          Phase 3C emergent U(2) gauge bosons & Coulomb-branch Matrix Higgs
+  chiral         Phase 3D 4D S^2xS^2 emergence & fuzzy Ginsparg-Wilson chiral generations
+  watch          Interactive zero-cheat live GUI observatory (emergence | metastable | wave)
+  law-ecosystem  Level-2A: 200 random bounded 3-matrix laws across 4 controlled ensembles
+  dirty-healing  Level-2B: Dirty-law survival & large-N RG robustness (N=6, 8, 12, 16)
+  bootstrap      Level-2C: Han-Hartnoll-Kruthoff (2020) Matrix & Yang-Mills SDP Bootstrap
+  suite          Run fast end-to-end showcase across verify + phase1 + gauge + chiral
 ================================================================================
 """
 
@@ -42,13 +37,13 @@ from genesis_rigorous import __version__
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="genesis_cli.py",
-        description=f"Project Genesis-Rigorous v{__version__} — Unified Emergent Spacetime & Particle Laboratory",
+        description=f"Project Genesis-Rigorous v{__version__} — Unified Emergent Spacetime & Law Discovery Lab",
     )
     parser.add_argument("--cpu", action="store_true", help="Force CPU execution instead of CUDA")
     sub = parser.add_subparsers(dest="command", required=True)
 
-    # verify
-    p_ver = sub.add_parser("verify", help="Run master 17-test mathematical & gauge-invariance audit")
+    # verify (20-test master audit)
+    p_ver = sub.add_parser("verify", help="Run master 20-test mathematical, gauge-invariance & bootstrap audit")
     p_ver.add_argument("--save-cert", type=str, default="", help="Optional path to save JSON audit certificate")
 
     # phase1
@@ -61,7 +56,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_p1.add_argument("--out-dir", type=str, default="")
 
     # gravity (Stage 3)
-    p_gr = sub.add_parser("gravity", help="Phase 2 / Stage 3: Single-body Adjoint Dirac matter gravity test")
+    p_gr = sub.add_parser("gravity", help="Phase 2 / Stage 3: Single-body Adjoint Dirac matter backreaction")
     p_gr.add_argument("--state-pt", type=str, default="")
     p_gr.add_argument("--masses", type=str, default="0,10,25,50,80")
     p_gr.add_argument("--m-psi", type=float, default=0.5)
@@ -83,47 +78,42 @@ def build_parser() -> argparse.ArgumentParser:
     p_ln.add_argument("--out-dir", type=str, default="")
 
     # gauge (Phase 3C)
-    p_ga = sub.add_parser("gauge", help="Phase 3C: Emergent U(2) gauge bosons & exact Matrix Higgs mechanism")
+    p_ga = sub.add_parser("gauge", help="Phase 3C: Emergent U(2) gauge bosons & Coulomb-branch Matrix Higgs")
     p_ga.add_argument("--n-sphere", type=int, default=6)
     p_ga.add_argument("--out-dir", type=str, default="")
 
     # chiral (Phase 3D)
-    p_ch = sub.add_parser("chiral", help="Phase 3D: 4D S^2xS^2 emergent space & Atiyah-Singer chiral generations")
+    p_ch = sub.add_parser("chiral", help="Phase 3D: 4D S^2xS^2 emergence & fuzzy Ginsparg-Wilson chiral generations")
     p_ch.add_argument("--out-dir", type=str, default="")
 
-    # wormhole (Phase 4A)
-    p_wh = sub.add_parser("wormhole", help="Phase 4A: ER=EPR entanglement wormhole & real-time traversable signal test")
-    p_wh.add_argument("--n-sphere", type=int, default=6)
-    p_wh.add_argument("--out-dir", type=str, default="")
+    # watch (Interactive Zero-Cheat Live Observatory)
+    p_wa = sub.add_parser("watch", help="Launch interactive zero-cheat GUI observatory (emergence | metastable | wave)")
+    p_wa.add_argument("--mode", type=str, default="emergence", choices=["emergence", "metastable", "wave"])
+    p_wa.add_argument("--N", type=int, default=8)
+    p_wa.add_argument("--frames", type=int, default=68)
+    p_wa.add_argument("--fps", type=int, default=16)
+    p_wa.add_argument("--state-pt", type=str, default="")
+    p_wa.add_argument("--save-gif", type=str, default="")
+    p_wa.add_argument("--headless", action="store_true")
 
-    # blackhole (Phase 4B)
-    p_bh = sub.add_parser("blackhole", help="Phase 4B: Hawking-Page melting, butterfly scrambling & unitary Page curve")
-    p_bh.add_argument("--N", type=int, default=8)
-    p_bh.add_argument("--out-dir", type=str, default="")
+    # law-ecosystem (Level-2A)
+    p_le = sub.add_parser("law-ecosystem", help="Level-2A: 200 random bounded 3-matrix laws ecosystem scan")
+    p_le.add_argument("--N", type=int, default=8)
+    p_le.add_argument("--n-per-ensemble", type=int, default=50)
+    p_le.add_argument("--out-dir", type=str, default="")
 
-    # emergent-time (Phase 4C)
-    p_et = sub.add_parser("emergent-time", help="Phase 4C: Page-Wootters emergent time & redshift from timeless WDW state")
-    p_et.add_argument("--d-clock", type=int, default=48)
-    p_et.add_argument("--out-dir", type=str, default="")
+    # dirty-healing (Level-2B)
+    p_dh = sub.add_parser("dirty-healing", help="Level-2B: Dirty-law survival & large-N RG robustness (N=6..16)")
+    p_dh.add_argument("--Ns", type=str, default="6,8,12,16")
+    p_dh.add_argument("--out-dir", type=str, default="")
 
-    # bigbang (Phase 4D)
-    p_bb = sub.add_parser("bigbang", help="Phase 4D: Matrix Big Bang, causality crystallization & false vacuum decay")
-    p_bb.add_argument("--out-dir", type=str, default="")
-
-    # watch (Interactive Zero-Cheat Live Spacetime Observatory!)
-    p_wa = sub.add_parser("watch", help="Launch interactive zero-cheat GUI animation (emergence | metastable | wave)")
-    p_wa.add_argument("--mode", type=str, default="emergence", choices=["emergence", "metastable", "wave"],
-                      help="emergence: 0D chaos -> fuzzy sphere + QFIM; metastable: double shell; wave: gravitational wave")
-    p_wa.add_argument("--N", type=int, default=8, help="Matrix size N (default 8; try 10 or 12 for sharper sphere)")
-    p_wa.add_argument("--frames", type=int, default=68, help="Number of trajectory frames")
-    p_wa.add_argument("--fps", type=int, default=16, help="Playback FPS")
-    p_wa.add_argument("--state-pt", type=str, default="", help="Optional Phase 1 checkpoint for --mode wave")
-    p_wa.add_argument("--save-gif", type=str, default="", help="Optional path to also export animated GIF")
-    p_wa.add_argument("--headless", action="store_true", help="Compute without opening GUI window (for testing/GIF export)")
+    # bootstrap (Level-2C)
+    p_bs = sub.add_parser("bootstrap", help="Level-2C: Han-Hartnoll-Kruthoff (2020) Matrix & Yang-Mills SDP Bootstrap")
+    p_bs.add_argument("--out-dir", type=str, default="")
 
     # suite (End-to-end showcase)
-    p_su = sub.add_parser("suite", help="Run integrated end-to-end showcase (verify + phase1 + gauge + chiral [+ gravity])")
-    p_su.add_argument("--fast", action="store_true", help="Fast smoke-test mode (N=6 phase1 + gauge + chiral, ~90s total)")
+    p_su = sub.add_parser("suite", help="Run integrated end-to-end showcase (verify + phase1 + gauge + chiral)")
+    p_su.add_argument("--fast", action="store_true", help="Fast smoke-test mode (N=6 phase1 + gauge + chiral, ~90s)")
     p_su.add_argument("--out-dir", type=str, default="")
 
     return parser
@@ -134,6 +124,7 @@ def main():
     args = parser.parse_args()
     prefer_cuda = not args.cpu
 
+    # Lazy-import interactive GUI viewer BEFORE any module sets matplotlib Agg backend
     if args.command == "watch":
         from genesis_rigorous.experiments.spacetime_viewer import run_spacetime_viewer
         run_spacetime_viewer(
@@ -149,10 +140,9 @@ def main():
         run_phase3b_large_n_experiment,
         run_phase3c_gauge_experiment,
         run_phase3d_chiral_experiment,
-        run_phase4a_wormhole_experiment,
-        run_phase4b_blackhole_experiment,
-        run_phase4c_emergent_time_experiment,
-        run_phase4d_bigbang_experiment,
+        run_law_ecosystem_experiment,
+        run_dirty_law_healing_experiment,
+        run_matrix_bootstrap_experiment,
     )
     from genesis_rigorous.verification import run_master_verification
 
@@ -194,17 +184,17 @@ def main():
     elif args.command == "chiral":
         run_phase3d_chiral_experiment(out_dir=args.out_dir, prefer_cuda=prefer_cuda)
 
-    elif args.command == "wormhole":
-        run_phase4a_wormhole_experiment(n_sphere=args.n_sphere, out_dir=args.out_dir, prefer_cuda=prefer_cuda)
+    elif args.command == "law-ecosystem":
+        run_law_ecosystem_experiment(
+            N=args.N, n_per_ensemble=args.n_per_ensemble, out_dir=args.out_dir, prefer_cuda=prefer_cuda,
+        )
 
-    elif args.command == "blackhole":
-        run_phase4b_blackhole_experiment(N=args.N, out_dir=args.out_dir, prefer_cuda=prefer_cuda)
+    elif args.command == "dirty-healing":
+        Ns = [int(x.strip()) for x in args.Ns.split(",") if x.strip()]
+        run_dirty_law_healing_experiment(Ns=Ns, out_dir=args.out_dir, prefer_cuda=prefer_cuda)
 
-    elif args.command == "emergent-time":
-        run_phase4c_emergent_time_experiment(d_clock=args.d_clock, out_dir=args.out_dir, prefer_cuda=prefer_cuda)
-
-    elif args.command == "bigbang":
-        run_phase4d_bigbang_experiment(out_dir=args.out_dir, prefer_cuda=prefer_cuda)
+    elif args.command == "bootstrap":
+        run_matrix_bootstrap_experiment(out_dir=args.out_dir)
 
     elif args.command == "suite":
         t0 = time.time()

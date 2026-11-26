@@ -32,7 +32,7 @@ def run_master_verification(prefer_cuda: bool = True) -> Dict[str, object]:
     results = {}
 
     print("=" * 92)
-    print(f"PROJECT GENESIS-RIGOROUS — MASTER 17-TEST MATHEMATICAL AUDIT (Device={device})")
+    print(f"PROJECT GENESIS-RIGOROUS v1.1.0 — MASTER 20-TEST MATHEMATICAL AUDIT (Device={device})")
     print("=" * 92)
 
     def record(tid: str, desc: str, passed: bool, detail: str):
@@ -282,6 +282,48 @@ def run_master_verification(prefer_cuda: bool = True) -> Dict[str, object]:
     idx_ch = int(torch.sum(g5_ev > 0.5) - torch.sum(g5_ev < -0.5))
     record("T17", "GKP Chiral Dirac Gauge, {D,g5}=0 & Index=3", g_ch < 1e-12 and ac_ch < 1e-12 and idx_ch == 3,
            f"Gauge={g_ch:.1e}, {{D,g5}}={ac_ch:.1e}, NoisyIdx={idx_ch:+d}")
+
+    # T18: Level-2 General Dirty-Law U(N) Gauge Invariance & Analytical Gradient
+    from .experiments.law_ecosystem import GeneralRandomMatrixLaw, _random_spd_3x3, _random_sym_cubic_3x3x3
+    rng_l2 = np.random.default_rng(9001)
+    law_t = GeneralRandomMatrixLaw(
+        M=_random_spd_3x3(rng_l2), S_sym=_random_sym_cubic_3x3x3(rng_l2, 0.3),
+        nu_flux=0.75, g_ym=np.array([0.20, 0.35, 0.28]),
+        q_diag=np.array([0.05, 0.08, 0.03]), r_cross=np.array([0.04, 0.06, 0.02]),
+        device=device,
+    )
+    El2_1, Gl2_1 = law_t.energy_and_grad(Y_r, compute_grad=True)
+    El2_2, _ = law_t.energy_and_grad(Y_rot, compute_grad=False)
+    g_l2_err = abs(El2_1 - El2_2) / max(abs(El2_1), 1.0)
+    fd_l2 = (law_t.energy_and_grad(Y_r + 1e-5 * dY, False)[0] - law_t.energy_and_grad(Y_r - 1e-5 * dY, False)[0]) / 2e-5
+    an_l2 = float(torch.real(torch.sum(dY * Gl2_1.conj())))
+    gr_l2_err = abs(fd_l2 - an_l2) / max(abs(fd_l2), 1e-12)
+    record("T18", "Dirty-Law U(N) Gauge Inv & Analytical Grad", g_l2_err < 1e-12 and gr_l2_err < 1e-6,
+           f"Gauge={g_l2_err:.2e}, Grad={gr_l2_err:.2e}")
+
+    # T19: Level-2 Bootstrap Exact Loop Equations (1D AHO & Large-N 1-Matrix QM)
+    from .experiments.matrix_bootstrap import (
+        exact_1d_aho_fock, exact_large_n_1matrix_bipz,
+        bootstrap_1d_aho_moments, bootstrap_1matrix_moments,
+        _hankel_min_eig_scaled, _matrix1_min_eig_with_p,
+        bootstrap_savvidy_ym_sdp,
+    )
+    E_aho_t, x2_aho_t = exact_1d_aho_fock(g=1.0, n_fock=60)
+    lam_aho_t = _hankel_min_eig_scaled(bootstrap_1d_aho_moments(E_aho_t, x2_aho_t, 1.0, 10), 10)
+    e_1m_t, t2_1m_t, _ = exact_large_n_1matrix_bipz(g=1.0)
+    lam_1m_t = _matrix1_min_eig_with_p(bootstrap_1matrix_moments(e_1m_t, t2_1m_t, 1.0, 10), e_1m_t, 1.0, 10)
+    record("T19", "Bootstrap Loop Eqs (1D AHO & Large-N 1M)", lam_aho_t >= -1e-9 and lam_1m_t >= -1e-9,
+           f"1D_eig={lam_aho_t:+.2e}, 1M_eig={lam_1m_t:+.2e}")
+
+    # T20: Level-2 Symbolic Weyl-Algebra Savvidy Yang-Mills SDP Sandwich (g^2 = 1.0)
+    sdp_t = bootstrap_savvidy_ym_sdp(g2=1.0)
+    sdp_ok = (
+        sdp_t["E_boot_lower"] <= sdp_t["E_exact"] + 1e-6 <= sdp_t["E_hfb_upper"] + 1e-6
+        and sdp_t["boot_err_pct"] < 0.2
+        and sdp_t["duality_gap"] < 1e-7
+    )
+    record("T20", "Savvidy YM Symbolic SDP Sandwich (g^2=1)", sdp_ok,
+           f"Boot={sdp_t['E_boot_lower']:.5f}<=Ex={sdp_t['E_exact']:.5f}<=HFB={sdp_t['E_hfb_upper']:.5f} (KKT={sdp_t['duality_gap']:.1e})")
 
     n_pass = sum(1 for r in results.values() if r["passed"])
     n_tot = len(results)
