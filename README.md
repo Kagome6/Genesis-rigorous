@@ -133,6 +133,7 @@ python genesis_cli.py chiral
 
 ## 7. AI Collaboration & Transparency Statement
 
+
 This repository and its accompanying technical report were developed through an interactive human–AI research collaboration between the human author (**Alpha496**) and **Gemini by Google DeepMind** ((Gemini 4 Neon)using the Antigravity agentic coding environment).
 
 - **Role of AI**: Assisted with mathematical cross-checking, PyTorch/CUDA numerical implementation, debugging of matrix-model edge cases (e.g., gauge-orbit zero-mode projection and Daleckii–Krein derivative stabilization), automated verification-suite construction, and drafting of English/Japanese documentation.
