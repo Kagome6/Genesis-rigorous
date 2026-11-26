@@ -23,24 +23,25 @@
 - 大規模モンテカルロ法や厳密対角化は計算コストが大きく、個人環境では再現が難しい。
 - 一方で簡易的なトイコードでは、「目標半径をポテンシャルに書き込む」「球面に近い初期種を与える」「反証用の対照実験や $N$ スケーリング検証を省く」といった**暗黙のカンニング（誘導バイアス）**が混入しやすい。
 
-**Project Genesis-Rigorous v1.0.2** は、個人向け GPU（NVIDIA RTX 3060 12GB、計算時間 数秒〜数分）上で、**カンニング排除（Zero-Cheat）・対照実験必須・20 項目自動監査付き**でこれらを一貫検証するための計算物理テストベッドです。`v1.0.1` に対する独立査読で指摘された 3 つの本質的課題（① $k=0$ トレースモード偽陽性と $N$ スケーリング欠如、② 深い古典領域・非一重項平均場への限定、③ 汎用弾性膜コントロールの不足）を、**コード改修と 3 つの新規実験（Exp 1–3）によって正面から解決**しました。
+**Project Genesis-Rigorous v1.0.2** は、個人向け GPU（NVIDIA RTX 3060 12GB、計算時間 数秒〜数分）上で、**Zero-Cheat・対照実験必須・20 項目自動監査付き**でこれらを一貫検証するための計算物理テストベッドです。`v1.0.1` に対する独立査読で指摘された 3 つの本質的課題（① $k=0$ トレースモード偽陽性と $N$ スケーリング欠如、② 深い古典領域・非一重項平均場への限定、③ 汎用弾性膜コントロールの不足）を解決しています。
 
 > **本研究の誠実な位置づけ**
 > 本プロジェクトは「新しい量子重力理論の提唱」や「標準模型の第一原理導出」ではなく、1980–2025 年の先行理論研究（Madore 1992, Myers 1999, Azuma et al. 2004, Kawahara–Nishimura–Takeuchi 2007, Berenstein–Dzienkowski 2012, Ishiki 2015, Han–Hartnoll 2020, Frenkel 2024, Fliss–Frenkel–Hartnoll–Soni 2025, Steinacker 2024, Grosse–Klimčík–Prešnajder 1996, Balachandran–Immirzi 2003 等）の核心機構を単一コード基盤上で統合・数値監査し、個人 PC で再現可能な形で検証した **計算物理ベンチマーク・再現テストベッド** です。
 
 ---
 
-## 2. 解いている統合数理モデル（Core Unified Hamiltonian & Exact HMC Path Integral）
+## 2. 今回のテスドヘッドとして解いている 3段階モジュール数理構成（3-Module Mathematical Architecture）
 
-本リポジトリは、背景時空や座標ラベルを一切持たない $(0+1)$ 次元エルミート行列 $\hat{X}_I$（$I=1,\dots,D$）に対し、**平均場 HFB＋トレースレス BdG 系** と **厳密 $U(N)$ ゲージ一重項・格子 HMC 経路積分** の 2 本柱を単一コードベースへ統合しています：
+本リポジトリは、背景時空や座標ラベルを一切持たない $(0+1)$ 次元エルミート行列 $\hat{X}_I$（$I=1,\dots,D$）を共通の土台とし、実験の目的に応じて以下の **3 つの独立モジュール** を組み合わせて検証するテストベッド構成をとっています：
 
-<img width="950" height="266" alt="数式2" src="https://github.com/user-attachments/assets/85e5c386-8d09-45bc-9cdb-7e708d24d778" />
+<img width="1053" height="534" alt="解いている数理モデル2" src="https://github.com/user-attachments/assets/818b08e6-4dd9-44eb-ba3a-28a50d3faaa1" />
 
-- **1行目（ボソン行列量子力学 $\hat{H}_{\mathrm{MQM}}$）**：ヤン＝ミルズ交換子 2 乗＋質量項 $\mu$＋Myers フラックス $\nu$。古典的には $\nu_{\mathrm{spin}}=\sqrt{2}\,\mu$ で球面解が現れ、**真の一次相転移点 $\nu_c = \frac{3}{2}\mu = 1.5\mu$**（厳密 HMC では量子補正により $\nu_c^{\mathrm{quantum}} \approx 1.65\text{–}1.68$ へシフト）を超えると 2 次元ファジー球面が安定化します。`v1.0.2` では平均場 HFB（4 次ウィック展開）に加え、動的ゲージ場（Polyakov ループ $U \in U(N)$）を含む **厳密 $U(N)$ 一重項・格子 HMC（`hmc_singlet.py`、符号問題ゼロ）** を実装し、強結合での量子融解と非閉じ込め転移を直接計算します。
-- **2行目（トレースレス $\mathfrak{su}(N)$ 2 フレーバー BdG リンク代理模型 $\hat{H}_{\mathrm{TN}}$）**：Frenkel (2024) に着想を得た、下に有界かつ Peschel 公式で厳密可解なリンク模型。`v1.0.2` では幾何に依存しない $k=0$ 恒等モード $E_0 = I_N/\sqrt{N}$ を対角化前に厳密射影で除去し、$U(N)$ 不変な単位半径正規化 $\tilde{Y}_I = Y_I / R_{\mathrm{rms}}$ により純粋な幾何依存エンタングルメント $S_{\mathrm{TN}}^{\mathfrak{su}(N)}$ を抽出します。
-- **3行目（随伴ディラック物質 $\hat{H}_{\mathrm{matter}}$ vs 汎用動径井戸 $\mathrm{Tr}(\hat{\rho}Y^2)$）**：点プローブ・コヒーレント波束上の単一粒子正エネルギー期待値 $E_{\mathrm{matter}} = M_{\mathrm{src}}\langle\sqrt{\mathcal{D}_{\mathrm{adj}}^2}\rangle$（縮退球面での `0/0` 自動微分破綻は Daleckii–Krein 有理化差分商で完全解消）を、`v1.0.2` Exp 3 で同一ソースエネルギーの汎用局所ポテンシャル $\mathrm{Tr}(\hat{\rho}Y^2)$ と直接比較します。
 
-> **創発空間の「座標無し測定」**：得られた行列 $Y_I$ の幾何は、外部座標を仮定せず、$U(N)$ ゲージ共変な点プローブ・ディラック演算子 $D_{\mathrm{probe}}(\vec{y}) = \sum_I (Y_I - y_I I_N)\otimes\Gamma_I$ の零点殻と、その基底状態の **Provost–Vallée 計量（＝量子フィッシャー情報計量 $g^{\mathrm{QFI}} = 4 g^{\mathrm{PV}}$）** によって次元・計量・固有ガウス曲率を直接測定します。
+- **モジュール (I)（ボソン行列量子力学 $\hat{H}_{\mathrm{MQM}}$ ＆ 厳密 $U(N)$ 一重項格子 HMC 作用 $S_E[X,U]$）**：本テストベッドの中核エンジン。ヤン＝ミルズ交換子 2 乗＋質量項 $\mu$＋Myers フラックス $\nu$ からなり、古典的には $\nu_{\mathrm{spin}}=\sqrt{2}\,\mu$ で球面解が現れ、**真の一次相転移点 $\nu_c = \frac{3}{2}\mu = 1.5\mu$**（厳密 HMC では量子補正により $\nu_c^{\mathrm{quantum}} \approx 1.65\text{–}1.68$ へシフト）を超えると 2 次元ファジー球面が安定化します。`v1.0.2` では平均場 HFB（4 次ウィック展開）に加え、動的ゲージ場（Polyakov ループ $U \in U(N)$）を含む **厳密 $U(N)$ 一重項・格子 HMC（`hmc_singlet.py`、符号問題ゼロ）** を実装し、強結合での量子融解と非閉じ込め転移を直接計算します。
+- **モジュール (II)（補助トレースレス $\mathfrak{su}(N)$ リンク・フェルミオン $\hat{H}_{\mathrm{link}}^{\mathfrak{su}(N)}[\tilde{Y}]$）**：Frenkel (2024) に着想を得た、下に有界かつ Peschel 公式で厳密可解な 2 フレーバー BdG リンク模型（Exp 1 用）。`v1.0.2` では幾何に依存しない $k=0$ 恒等モード $E_0 = I_N/\sqrt{N}$ を対角化前に厳密射影で除去し（$\mathrm{Tr}\,\hat{\chi}^{\alpha,s}=0$）、$U(N)$ 不変な単位半径正規化 $\tilde{Y}_I = Y_I / R_{\mathrm{rms}}$ により純粋な幾何依存エンタングルメント $S_{\mathrm{TN}}^{\mathfrak{su}(N)}$ を抽出します。
+- **モジュール (III)（局在物質プローブ $E_{\mathrm{Dirac}}[Y]$ vs 汎用弾性膜対照 $E_{\mathrm{rad}}[Y]$）**：点プローブ・コヒーレント波束上の単一粒子正エネルギー期待値 $E_{\mathrm{Dirac}}[Y] = M_{\mathrm{src}}\langle c\,|\,\sqrt{\mathcal{D}_{\mathrm{adj}}(Y)^2}\,|\,c\rangle$（縮退球面での `0/0` 自動微分破綻は Daleckii–Krein 有理化差分商で完全解消）を、`v1.0.2` Exp 3 で同一ソースエネルギーの汎用局所動径ポテンシャル $E_{\mathrm{rad}}[Y] = \lambda\,\mathrm{Tr}(\hat{\rho}_c \sum_I Y_I^2)$ と直接比較します。
+
+> **創発空間の「座標無し測定」**：得られた行列 $Y_I$ の幾何は、外部座標を仮定せず、$U(N)$ ゲージ共変な点プローブ・ディラック演算子 $D_{\mathrm{probe}}(\vec{y}) = \sum_I (Y_I - y_I I_N)\otimes\Gamma_I$ の零点殻と、その基底状態の **Provost–Vallée 計量（＝量子フィッシャー情報計量 $g^{\mathrm{QFI}} = 4 g^{\mathrm{PV}}$）** によって次元・計量・固有ガウス曲率を測定することを目指します。
 
 ---
 
