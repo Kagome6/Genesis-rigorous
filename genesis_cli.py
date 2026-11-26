@@ -2,30 +2,37 @@
 # -*- coding: utf-8 -*-
 """
 ================================================================================
-PROJECT GENESIS-RIGOROUS — UNIFIED CLI ENTRYPOINT (genesis_cli.py)
+PROJECT GENESIS-RIGOROUS v1.0.2 — UNIFIED CLI ENTRYPOINT (genesis_cli.py)
 ================================================================================
-Zero-Cheat Matrix Quantum Mechanics x Quantum Entanglement Laboratory for
-Emergent Spacetime, Gravity, Non-Abelian Gauge Bosons & Chiral Fermions.
+U(N)-Covariant Mean-Field HFB + Exact U(N)-Singlet Gauged HMC PyTorch/CUDA
+Testbed for Emergent Fuzzy-Sphere Geometry, Subregion Entanglement Scaling,
+Noncommutative Membrane Response, Gauge Bosons & Fuzzy Chiral Fermions.
 
-Subcommands:
-  verify     Run all 17 exact mathematical & gauge-invariance self-tests (<5s)
-  phase1     Dual-Universe phase transition + Point-Probe + Blind QRF Area Law
-  gravity    Stage 3 localized Adjoint Dirac matter curvature & surface deflection
-  realtime   Phase 3A two-body emergent gravity attraction & real-time light cone
-  large-n    Phase 3B O(N^3) matrix-native continuum scaling (N=16, 20, 24, 32)
-  gauge      Phase 3C emergent U(2) gauge bosons & Matrix Higgs U(2)->U(1)xU(1)
-  chiral     Phase 3D 4D S^2xS^2 emergence & Atiyah-Singer chiral generations
-  suite      Run fast end-to-end showcase across verify + phase1 + gauge + chiral
+Subcommands (v1.0.2 Core & Visualizers):
+  verify                Run all 20 mathematical, traceless & HMC self-tests (~4s)
+  entanglement-scaling  v1.0.2 Exp 1: Traceless su(N) & HFB entanglement N-scaling vs GUE
+  phase-hmc             v1.0.2 Exp 2: First-order transition & strong-coupling melting (HFB vs HMC)
+  membrane-control      v1.0.2 Exp 3: Adjoint Dirac vs generic Tr(rho Y^2) membrane control
+  watch                 v1.0.2 Classic 5-panel observatory (birth, melting, emergence; static 3D + QFIM)
+  watch-quantum         v1.0.2 Live interactive 3D HMC observatory with nu/g sliders
+
+Subcommands (Inherited & Audited Phase 1-3 Baseline Suite):
+  phase1                Phase 1: Dual-Universe transition + Point-Probe + Blind QRF search
+  gravity               Phase 2 / Stage 3: Single-body Adjoint Dirac elastic membrane response
+  realtime              Phase 3A: Two-body overlap attraction & real-time elastic wavefronts
+  large-n               Phase 3B: Matrix-Native large-N continuum scaling (N=16, 20, 24, 32)
+  gauge                 Phase 3C: Emergent U(2) gauge bosons & Coulomb-branch Matrix Higgs splitting
+  chiral                Phase 3D: 4D S^2xS^2 product factorization & fuzzy Ginsparg-Wilson chiral index
+  suite                 Run fast end-to-end showcase across verify + phase1 + gauge + chiral
 
 Examples:
-  python genesis_cli.py verify
-  python genesis_cli.py phase1 --N 8
-  python genesis_cli.py gravity --state-pt results/.../phase1_states.pt
-  python genesis_cli.py realtime --state-pt results/.../phase1_states.pt
-  python genesis_cli.py large-n --Ns 16,20,24,32
-  python genesis_cli.py gauge --n-sphere 6
-  python genesis_cli.py chiral
-  python genesis_cli.py suite --fast
+  python genesis_cli.py verify --save-cert results/audit_certificate_v1.0.2.json
+  python genesis_cli.py entanglement-scaling
+  python genesis_cli.py phase-hmc --N 4 --L 12 --beta 3.0 --chains 24
+  python genesis_cli.py membrane-control --N 8
+  python genesis_cli.py watch --mode birth
+  python genesis_cli.py watch --mode melting
+  python genesis_cli.py watch-quantum --demo
 ================================================================================
 """
 
