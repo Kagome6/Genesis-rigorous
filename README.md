@@ -7,12 +7,10 @@
 
 **Zero-Cheat Matrix Quantum Mechanics × Quantum Entanglement Laboratory for Emergent Spacetime, Gravity, Non-Abelian Gauge Bosons, and Chiral Matter**
 
-<p align="center">
-  <img width="1627" height="965" alt="watch_emergence_N8" src="https://github.com/user-attachments/assets/af2db573-2fd6-4038-ab45-2b923bdd8b9e" />
-</p>
-<p align="center">
+<img width="1627" height="965" alt="watch_emergence_N8" src="https://github.com/user-attachments/assets/04ee4454-d6c9-4e60-86ec-24c31cabcabc" />
+
+
   <em><strong>ゼロチート・ライブ観測（<code>python genesis_cli.py watch --mode emergence</code>）</strong>：座標も球面メッシュも一切使わず、純粋な U(8) 等方ランダム行列から球面時空（宇宙 B）が自発的に結晶化し、量子フィッシャー情報計量（QFIM）が 3D カオスから厳密ランク 2 の 2 次元多様体へ収束する一方、同一初期乱数の対照宇宙 A（&nu; = 0.80）が 0 次元へ崩壊する実測動画。</em>
-</p>
 
 ---
 
@@ -36,26 +34,8 @@
 
 本リポジトリの全実験は、背景時空や座標ラベルを一切持たない $(0+1)$ 次元エルミート行列 $\hat{X}_I$（$I=1,\dots,D$）と量子リンク・物質自由度を連成させた、以下の単一 $U(N)$ ゲージ不変ハミルトニアン $\hat{H}_{\mathrm{univ}} = \hat{H}_{\mathrm{MQM}} + \hat{H}_{\mathrm{TN}} + \hat{H}_{\mathrm{matter}}$ に基づいています：
 
-$$
-\begin{aligned}
-\hat{H}_{\mathrm{univ}} \;=\;
-&\;\mathrm{Tr}\!\left[
-  \frac{1}{2m}\sum_{I=1}^{D}\hat{\Pi}_I^2
-  - \frac{g^2}{4}\sum_{I\neq J}[\hat{X}_I, \hat{X}_J]^2
-  + \frac{\mu^2}{2}\sum_{I=1}^{D}\hat{X}_I^2
-  + i\frac{\nu g}{3}\sum_{I,J,K}\epsilon_{IJK}\,\hat{X}_I[\hat{X}_J,\hat{X}_K]
-\right] \\[6pt]
-&+ \;\kappa\sum_{\alpha=1}^{N_f}\mathrm{Tr}\!\left[
-  \sum_{s=\pm}\hat{\chi}^{\alpha,s\dagger}\,\mathcal{F}_\Lambda(\Delta_{\hat{X}})\,\hat{\chi}^{\alpha,s}
-  + i\bigl(\hat{\chi}^{\alpha,+\dagger}\hat{\chi}^{\alpha,-\dagger} - \hat{\chi}^{\alpha,-}\hat{\chi}^{\alpha,+}\bigr)
-\right] \\[6pt]
-&+ \;\mathrm{Tr}\!\left[
-  \hat{\Psi}^\dagger\!\left(\sum_{I=1}^{3}\alpha^I[\hat{X}_I, \cdot\,] + m_\psi\beta\right)\!\hat{\Psi}
-\right],
-\qquad
-\Delta_{\hat{X}}(\cdot) \equiv \sum_{I=1}^{D}[\hat{X}_I,[\hat{X}_I,\cdot\,]]
-\end{aligned}
-$$
+<img width="950" height="266" alt="数式2" src="https://github.com/user-attachments/assets/85e5c386-8d09-45bc-9cdb-7e708d24d778" />
+
 
 - **1行目（ボソン行列量子力学 $\hat{H}_{\mathrm{MQM}}$）**：ヤン＝ミルズ交換子 2 乗＋ Myers フラックス。フラックス $\nu$ が臨界値 $\nu_c = \sqrt{2}\,\mu$ を超えると、無構造な乱数行列から 2 次元／4 次元の非可換ブレーン空間が自発凝縮し、その上の揺らぎから $U(2)$ ゲージ場や実時間光円錐が現れます（自己無撞着 HFB ガウス量子波束で 4 次ウィック展開まで厳密評価）。
 - **2行目（2 フレーバー BdG リンク代理模型 $\hat{H}_{\mathrm{TN}}$）**：非可換ラプラシアン $\Delta_{\hat{X}}$ を介して空間的に近い行列モード間だけを強くもつれさせ、Peschel 公式により厳密な部分領域エンタングルメント $S_{\mathrm{TN}}$ とブラインド極小面積則を駆動します。
