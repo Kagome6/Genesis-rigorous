@@ -1,7 +1,8 @@
 """
-O(N^3) Matrix-Native Quantum Engine (ZERO O(N^6) f_abc allocation).
-Supports arbitrary spatial dimension D (D=3 fuzzy S^2, D=6 4D S^2 x S^2) and
-large matrix sizes N up to 32+ within < 100 MB VRAM on consumer GPUs.
+O(N^4)-Memory Matrix-Native Quantum Engine (ZERO O(N^6) f_abc allocation).
+Classical Yang-Mills/Myers forces run in O(N^3) arithmetic; the N^2 x N^2
+Kronecker Laplacian requires O(N^4) memory (16 MiB complex128 at N=32, 512x
+smaller than the 8 GiB f_abc tensor) and O(N^6) dense eigendecomposition.
 """
 
 from typing import Dict, List, Optional, Tuple

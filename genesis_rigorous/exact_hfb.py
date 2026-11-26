@@ -1,7 +1,7 @@
 """
-Exact Full-HFB Gaussian Matrix Wave-Packet Core + Exact 2-Flavor BdG Link Fermions
-+ U(N)-Singlet Projected Gauss-Law Casimir + Cholesky Bosonic Symplectic Entropy
-+ 100% U(N) Gauge-Invariant Point-Probe Dirac Geometry & Exact Provost-Vallee Metric.
+U(N)-Covariant Mean-Field HFB Gaussian Matrix Wave-Packet Core + 2-Flavor BdG Link Fermions
+(including Traceless su(N) k=0-Projected Link Sector) + Coulomb-Transverse Projected Casimir
++ Cholesky Bosonic Symplectic Entropy + Point-Probe Dirac Geometry & Exact Provost-Vallee Metric.
 """
 
 from typing import Dict, Optional, Tuple
@@ -309,6 +309,100 @@ class GenesisQuantumCore:
         E_tn = kappa * Nf * torch.sum(f - torch.sqrt(f * f + 1.0))
         E_mats = torch.einsum("ak,ajl->kjl", U_lap.to(self.cdtype), self.T_basis)
         return E_tn, lam, f, E_mats, U_lap
+
+    def build_traceless_basis(self) -> torch.Tensor:
+        """Exact orthonormal (N^2 - 1) basis of traceless Hermitian su(N) matrices orthogonal to I_N/sqrt(N)."""
+        basis = []
+        # Diagonal Cartan generators (N - 1)
+        for m in range(1, self.N):
+            T = torch.zeros((self.N, self.N), dtype=self.cdtype, device=self.device)
+            val = 1.0 / np.sqrt(float(m * (m + 1)))
+            for i in range(m):
+                T[i, i] = val
+            T[m, m] = -float(m) * val
+            basis.append(T)
+        inv_s2 = 1.0 / np.sqrt(2.0)
+        for a in range(self.N):
+            for b in range(a + 1, self.N):
+                T = torch.zeros((self.N, self.N), dtype=self.cdtype, device=self.device)
+                T[a, b] = inv_s2
+                T[b, a] = inv_s2
+                basis.append(T)
+        for a in range(self.N):
+            for b in range(a + 1, self.N):
+                T = torch.zeros((self.N, self.N), dtype=self.cdtype, device=self.device)
+                T[a, b] = 1j * inv_s2
+                T[b, a] = -1j * inv_s2
+                basis.append(T)
+        return torch.stack(basis, dim=0)
+
+    def bdg_link_sector_traceless(
+        self, Y: torch.Tensor, kappa: float = 0.15, Nf: int = 1,
+        c1: float = 1.0, c2: float = 0.0, normalize_by_R2: bool = True
+    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+        """
+        Traceless su(N) 2-flavor BdG link sector strictly projecting out the geometry-blind
+        U(1) identity mode E_0 = I_N / sqrt(N) BEFORE diagonalization (safe on degenerate spectra).
+        When normalize_by_R2=True, Y is rescaled by U(N)-invariant R_rms = sqrt(Tr(Y^2)/N)
+        so Delta_{Y/R_rms} has O(1) spectrum independent of N.
+        """
+        tr_y2 = torch.real(torch.sum(Y * Y.conj()))
+        if float(tr_y2) < 1e-20:
+            T_su = self.build_traceless_basis()
+            zeros = torch.zeros(self.N2 - 1, dtype=self.rdtype, device=self.device)
+            return torch.zeros((), dtype=self.rdtype, device=self.device), zeros, zeros, T_su
+
+        if normalize_by_R2:
+            R_rms = torch.sqrt(tr_y2 / float(self.N))
+            Y_use = Y / R_rms
+        else:
+            Y_use = Y
+
+        T_su = self.build_traceless_basis()
+        Delta_su = torch.zeros((self.N2 - 1, self.N2 - 1), dtype=self.rdtype, device=self.device)
+        for I in range(self.D):
+            comm = Y_use[I].unsqueeze(0) @ T_su - T_su @ Y_use[I].unsqueeze(0)
+            Delta_su += torch.real(torch.einsum("ajk,bjk->ab", comm.conj(), comm))
+        Delta_su = 0.5 * (Delta_su + Delta_su.T)
+
+        lam_su, U_su = safe_eigh(Delta_su)
+        lam_su = torch.clamp(lam_su, min=0.0)
+        f_su = c1 * lam_su + c2 * (lam_su * lam_su)
+        E_tn_su = kappa * Nf * torch.sum(f_su - torch.sqrt(f_su * f_su + 1.0))
+        E_mats_su = torch.einsum("ak,ajl->kjl", U_su.to(self.cdtype), T_su)
+        return E_tn_su, lam_su, f_su, E_mats_su
+
+    def bdg_subregion_entropy_traceless(
+        self, E_mats_su: torch.Tensor, f_su: torch.Tensor, Q_in: torch.Tensor, Nf: int = 1
+    ) -> torch.Tensor:
+        """
+        Exact Peschel von Neumann entropy of the traceless su(N) BdG link sector
+        with the U(1) identity mode E_0 = I_N/sqrt(N) strictly fixed in the unentangled vacuum
+        (n_0 = 0, m_0 = 1, a_0 = 0).
+        """
+        M = Q_in.shape[1]
+        eps = torch.sqrt(f_su * f_su + 1.0)
+        n_k = ((eps - f_su) / (2.0 * eps)).to(self.cdtype)
+        m_k = ((eps + f_su) / (2.0 * eps)).to(self.cdtype)
+        a_k = (-1j / (2.0 * eps)).to(self.cdtype)
+
+        B_su = torch.einsum("ip,kij,jq->kpq", Q_in.conj(), E_mats_su, Q_in).reshape(self.N2 - 1, M * M)
+        B_su_H = B_su.conj().T
+
+        # Excluded U(1) identity mode E_0 = I_N / sqrt(N) has B_0,(pq) = delta_pq / sqrt(N)
+        eye_M = torch.eye(M, dtype=self.cdtype, device=self.device).reshape(1, M * M) / np.sqrt(float(self.N))
+        P0 = eye_M.conj().T @ eye_M  # m_0 = 1 contribution to G22
+
+        G11 = (B_su_H * n_k) @ B_su
+        G22 = P0 + (B_su_H * m_k) @ B_su
+        G21 = (B_su_H * a_k) @ B_su
+        G12 = G21.conj().T
+
+        G_sub = torch.cat([torch.cat([G11, G12], dim=1), torch.cat([G21, G22], dim=1)], dim=0)
+        G_sub = 0.5 * (G_sub + G_sub.conj().T)
+
+        ev = torch.clamp(safe_eigvalsh(G_sub), min=1e-13, max=1.0 - 1e-13)
+        return -float(Nf) * torch.sum(ev * torch.log(ev) + (1.0 - ev) * torch.log(1.0 - ev))
 
     @torch.no_grad()
     def exact_grad_y(
