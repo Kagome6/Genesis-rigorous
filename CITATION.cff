@@ -1,26 +1,28 @@
 cff-version: 1.2.0
-message: "If you use this software or its numerical verification benchmarks, please cite it as below."
+message: "If you use this software, its 20-test audit suite, or its numerical benchmarks, please cite it as below."
 type: software
-title: "An Unconstrained, U(N) Gauge-Invariant Numerical Framework for Emergent Geometry, Entanglement Area Laws, and Matter Couplings in Matrix Quantum Mechanics (Genesis-Rigorous v1.0.1)"
-version: 1.0.1
-date-released: 2026-11-25
+title: "Genesis-Rigorous v1.0.2: A Unified Mean-Field and Exact U(N)-Singlet HMC PyTorch/CUDA Testbed for Emergent Fuzzy-Sphere Geometry, Subregion Entanglement Scaling, and Noncommutative Membrane Response"
+version: 1.0.2
+date-released: 2026-11-26
 license: MIT
 authors:
   - name: "Alpha496"
-doi: "10.5281/zenodo.24528178"
-# repository-code: "https://github.com/YOUR_USERNAME/project-genesis-rigorous"
+doi: "10.5281/zenodo.24566494"  # (builds on v1.0.1: 10.5281/zenodo.24537568)
 keywords:
   - matrix quantum mechanics
-  - emergent spacetime
-  - quantum entanglement
-  - ryu-takayanagi
-  - emergent gravity
+  - emergent geometry
   - fuzzy sphere
-  - chiral fermions
+  - hybrid monte carlo
+  - quantum entanglement
+  - quantum fisher information metric
+  - noncommutative geometry
   - computational theoretical physics
 abstract: >-
-  An open-source, strictly U(N) gauge-invariant PyTorch CUDA computational physics testbed
-  unifying Hartree-Fock-Bogoliubov (HFB) matrix wave-packets, exact 2-flavor Bogoliubov-de Gennes
-  (BdG) link fermions, U(N)-singlet Gauss-law edge modes, adjoint Dirac matter backreaction,
-  O(N^3) matrix-native large-N scaling, emergent U(2) Higgs gauge bosons, and topologically
-  protected Ginsparg-Wilson chiral fermion generations on consumer GPUs.
+  An open-source, double-precision PyTorch/CUDA computational testbed unifying
+  U(N)-covariant Hartree-Fock-Bogoliubov (HFB) mean-field solvers, strictly traceless
+  su(N) Bogoliubov-de Gennes (BdG) link-fermion subregion entanglement scaling, an exact
+  U(N)-singlet gauged lattice Hybrid Monte Carlo (HMC) sampler with dynamical Polyakov-loop
+  holonomy and zero sign problem, localized adjoint-Dirac versus radial membrane controls,
+  matrix-native large-N scaling, U(2) Coulomb-branch Higgs splitting, and fuzzy
+  Ginsparg-Wilson chiral index checks, audited by 20 automated tests (T01-T20) and
+  accompanied by zero-cheat 5-panel quantum birth/melting visualizations.

@@ -2,30 +2,37 @@
 # -*- coding: utf-8 -*-
 """
 ================================================================================
-PROJECT GENESIS-RIGOROUS — UNIFIED CLI ENTRYPOINT (genesis_cli.py)
+PROJECT GENESIS-RIGOROUS v1.0.2 — UNIFIED CLI ENTRYPOINT (genesis_cli.py)
 ================================================================================
-Zero-Cheat Matrix Quantum Mechanics x Quantum Entanglement Laboratory for
-Emergent Spacetime, Gravity, Non-Abelian Gauge Bosons & Chiral Fermions.
+U(N)-Covariant Mean-Field HFB + Exact U(N)-Singlet Gauged HMC PyTorch/CUDA
+Testbed for Emergent Fuzzy-Sphere Geometry, Subregion Entanglement Scaling,
+Noncommutative Membrane Response, Gauge Bosons & Fuzzy Chiral Fermions.
 
-Subcommands:
-  verify     Run all 17 exact mathematical & gauge-invariance self-tests (<5s)
-  phase1     Dual-Universe phase transition + Point-Probe + Blind QRF Area Law
-  gravity    Stage 3 localized Adjoint Dirac matter curvature & surface deflection
-  realtime   Phase 3A two-body emergent gravity attraction & real-time light cone
-  large-n    Phase 3B O(N^3) matrix-native continuum scaling (N=16, 20, 24, 32)
-  gauge      Phase 3C emergent U(2) gauge bosons & Matrix Higgs U(2)->U(1)xU(1)
-  chiral     Phase 3D 4D S^2xS^2 emergence & Atiyah-Singer chiral generations
-  suite      Run fast end-to-end showcase across verify + phase1 + gauge + chiral
+Subcommands (v1.0.2 Core & Visualizers):
+  verify                Run all 20 mathematical, traceless & HMC self-tests (~4s)
+  entanglement-scaling  v1.0.2 Exp 1: Traceless su(N) & HFB entanglement N-scaling vs GUE
+  phase-hmc             v1.0.2 Exp 2: First-order transition & strong-coupling melting (HFB vs HMC)
+  membrane-control      v1.0.2 Exp 3: Adjoint Dirac vs generic Tr(rho Y^2) membrane control
+  watch                 v1.0.2 Classic 5-panel observatory (birth, melting, emergence; static 3D + QFIM)
+  watch-quantum         v1.0.2 Live interactive 3D HMC observatory with nu/g sliders
+
+Subcommands (Inherited & Audited Phase 1-3 Baseline Suite):
+  phase1                Phase 1: Dual-Universe transition + Point-Probe + Blind QRF search
+  gravity               Phase 2 / Stage 3: Single-body Adjoint Dirac elastic membrane response
+  realtime              Phase 3A: Two-body overlap attraction & real-time elastic wavefronts
+  large-n               Phase 3B: Matrix-Native large-N continuum scaling (N=16, 20, 24, 32)
+  gauge                 Phase 3C: Emergent U(2) gauge bosons & Coulomb-branch Matrix Higgs splitting
+  chiral                Phase 3D: 4D S^2xS^2 product factorization & fuzzy Ginsparg-Wilson chiral index
+  suite                 Run fast end-to-end showcase across verify + phase1 + gauge + chiral
 
 Examples:
-  python genesis_cli.py verify
-  python genesis_cli.py phase1 --N 8
-  python genesis_cli.py gravity --state-pt results/.../phase1_states.pt
-  python genesis_cli.py realtime --state-pt results/.../phase1_states.pt
-  python genesis_cli.py large-n --Ns 16,20,24,32
-  python genesis_cli.py gauge --n-sphere 6
-  python genesis_cli.py chiral
-  python genesis_cli.py suite --fast
+  python genesis_cli.py verify --save-cert results/audit_certificate_v1.0.2.json
+  python genesis_cli.py entanglement-scaling
+  python genesis_cli.py phase-hmc --N 4 --L 12 --beta 3.0 --chains 24
+  python genesis_cli.py membrane-control --N 8
+  python genesis_cli.py watch --mode birth
+  python genesis_cli.py watch --mode melting
+  python genesis_cli.py watch-quantum --demo
 ================================================================================
 """
 
@@ -37,6 +44,20 @@ import sys
 import time
 
 from genesis_rigorous import __version__
+from genesis_rigorous.experiments import (
+    run_phase1_experiment,
+    run_phase2_gravity_experiment,
+    run_phase3a_dynamics_experiment,
+    run_phase3b_large_n_experiment,
+    run_phase3c_gauge_experiment,
+    run_phase3d_chiral_experiment,
+    run_v102_entanglement_scaling_experiment,
+    run_v102_phase_transition_hmc_experiment,
+    run_v102_membrane_control_experiment,
+    run_v102_live_observatory,
+    run_v102_classic_viewer,
+)
+from genesis_rigorous.verification import run_master_verification
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -48,7 +69,7 @@ def build_parser() -> argparse.ArgumentParser:
     sub = parser.add_subparsers(dest="command", required=True)
 
     # verify
-    p_ver = sub.add_parser("verify", help="Run master 17-test mathematical & gauge-invariance audit")
+    p_ver = sub.add_parser("verify", help="Run master 20-test mathematical, traceless & HMC audit")
     p_ver.add_argument("--save-cert", type=str, default="", help="Optional path to save JSON audit certificate")
 
     # phase1
@@ -78,7 +99,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_rt.add_argument("--out-dir", type=str, default="")
 
     # large-n (Phase 3B)
-    p_ln = sub.add_parser("large-n", help="Phase 3B: O(N^3) Matrix-Native Large-N continuum scaling (N=16..32)")
+    p_ln = sub.add_parser("large-n", help="Phase 3B: Matrix-Native Large-N continuum scaling (N=16..32)")
     p_ln.add_argument("--Ns", type=str, default="16,20,24,32")
     p_ln.add_argument("--out-dir", type=str, default="")
 
@@ -91,35 +112,38 @@ def build_parser() -> argparse.ArgumentParser:
     p_ch = sub.add_parser("chiral", help="Phase 3D: 4D S^2xS^2 emergent space & Atiyah-Singer chiral generations")
     p_ch.add_argument("--out-dir", type=str, default="")
 
-    # wormhole (Phase 4A)
-    p_wh = sub.add_parser("wormhole", help="Phase 4A: ER=EPR entanglement wormhole & real-time traversable signal test")
-    p_wh.add_argument("--n-sphere", type=int, default=6)
-    p_wh.add_argument("--out-dir", type=str, default="")
+    # v1.0.2 Exp 1: Traceless su(N) & HFB Entanglement N-Scaling
+    p_e1 = sub.add_parser("entanglement-scaling", help="v1.0.2 Exp 1: Traceless su(N) & HFB entanglement N-scaling vs GUE")
+    p_e1.add_argument("--out-dir", type=str, default="")
 
-    # blackhole (Phase 4B)
-    p_bh = sub.add_parser("blackhole", help="Phase 4B: Hawking-Page melting, butterfly scrambling & unitary Page curve")
-    p_bh.add_argument("--N", type=int, default=8)
-    p_bh.add_argument("--out-dir", type=str, default="")
+    # v1.0.2 Exp 2: Phase Transition & HFB vs Exact U(N)-Singlet HMC
+    p_e2 = sub.add_parser("phase-hmc", help="v1.0.2 Exp 2: First-order transition & strong-coupling melting (HFB vs HMC)")
+    p_e2.add_argument("--N", type=int, default=4)
+    p_e2.add_argument("--L", type=int, default=12)
+    p_e2.add_argument("--beta", type=float, default=3.0)
+    p_e2.add_argument("--chains", type=int, default=24)
+    p_e2.add_argument("--out-dir", type=str, default="")
 
-    # emergent-time (Phase 4C)
-    p_et = sub.add_parser("emergent-time", help="Phase 4C: Page-Wootters emergent time & redshift from timeless WDW state")
-    p_et.add_argument("--d-clock", type=int, default=48)
-    p_et.add_argument("--out-dir", type=str, default="")
+    # v1.0.2 Exp 3: Adjoint Dirac vs Generic Tr(rho Y^2) Elastic Membrane Control
+    p_e3 = sub.add_parser("membrane-control", help="v1.0.2 Exp 3: Adjoint Dirac vs generic Tr(rho Y^2) membrane control")
+    p_e3.add_argument("--N", type=int, default=8)
+    p_e3.add_argument("--out-dir", type=str, default="")
 
-    # bigbang (Phase 4D)
-    p_bb = sub.add_parser("bigbang", help="Phase 4D: Matrix Big Bang, causality crystallization & false vacuum decay")
-    p_bb.add_argument("--out-dir", type=str, default="")
+    # v1.0.2 Classic v1.0.1-Style 5-Panel Viewer (Static 3D + inferno slices + R^2 + QFIM, NO Phi_TN!)
+    p_w = sub.add_parser("watch", help="v1.0.2 Classic 5-Panel Observatory (birth, melting, or emergence; static 3D + QFIM)")
+    p_w.add_argument("--mode", choices=["birth", "melting", "emergence"], default="birth")
+    p_w.add_argument("--N", type=int, default=0, help="Matrix size (default: 4 for birth, 6 for melting, 8 for emergence)")
+    p_w.add_argument("--frames", type=int, default=72)
+    p_w.add_argument("--save-gif", type=str, default="")
+    p_w.add_argument("--headless", action="store_true")
+    p_w.add_argument("--fps", type=int, default=12)
 
-    # watch (Interactive Zero-Cheat Live Spacetime Observatory!)
-    p_wa = sub.add_parser("watch", help="Launch interactive zero-cheat GUI animation (emergence | metastable | wave)")
-    p_wa.add_argument("--mode", type=str, default="emergence", choices=["emergence", "metastable", "wave"],
-                      help="emergence: 0D chaos -> fuzzy sphere + QFIM; metastable: double shell; wave: gravitational wave")
-    p_wa.add_argument("--N", type=int, default=8, help="Matrix size N (default 8; try 10 or 12 for sharper sphere)")
-    p_wa.add_argument("--frames", type=int, default=68, help="Number of trajectory frames")
-    p_wa.add_argument("--fps", type=int, default=16, help="Playback FPS")
-    p_wa.add_argument("--state-pt", type=str, default="", help="Optional Phase 1 checkpoint for --mode wave")
-    p_wa.add_argument("--save-gif", type=str, default="", help="Optional path to also export animated GIF")
-    p_wa.add_argument("--headless", action="store_true", help="Compute without opening GUI window (for testing/GIF export)")
+    # v1.0.2 Live Interactive Observatory (Real-Time Exact Singlet HMC Birth & Melting!)
+    p_wq = sub.add_parser("watch-quantum", help="v1.0.2 Live 3D Observatory: Interactive Birth & Quantum Melting (Exact HMC)")
+    p_wq.add_argument("--N", type=int, default=6)
+    p_wq.add_argument("--demo", action="store_true", help="Start in automatic Birth -> Solid -> Melting demo loop")
+    p_wq.add_argument("--save-gif", type=str, default="", help="Optional headless GIF output path")
+    p_wq.add_argument("--frames", type=int, default=90, help="Frame count when saving GIF")
 
     # suite (End-to-end showcase)
     p_su = sub.add_parser("suite", help="Run integrated end-to-end showcase (verify + phase1 + gauge + chiral [+ gravity])")
@@ -133,28 +157,6 @@ def main():
     parser = build_parser()
     args = parser.parse_args()
     prefer_cuda = not args.cpu
-
-    if args.command == "watch":
-        from genesis_rigorous.experiments.spacetime_viewer import run_spacetime_viewer
-        run_spacetime_viewer(
-            mode=args.mode, N=args.N, n_frames=args.frames, state_pt=args.state_pt,
-            fps=args.fps, save_gif=args.save_gif, headless=args.headless, prefer_cuda=prefer_cuda,
-        )
-        return
-
-    from genesis_rigorous.experiments import (
-        run_phase1_experiment,
-        run_phase2_gravity_experiment,
-        run_phase3a_dynamics_experiment,
-        run_phase3b_large_n_experiment,
-        run_phase3c_gauge_experiment,
-        run_phase3d_chiral_experiment,
-        run_phase4a_wormhole_experiment,
-        run_phase4b_blackhole_experiment,
-        run_phase4c_emergent_time_experiment,
-        run_phase4d_bigbang_experiment,
-    )
-    from genesis_rigorous.verification import run_master_verification
 
     if args.command == "verify":
         res = run_master_verification(prefer_cuda=prefer_cuda)
@@ -194,17 +196,30 @@ def main():
     elif args.command == "chiral":
         run_phase3d_chiral_experiment(out_dir=args.out_dir, prefer_cuda=prefer_cuda)
 
-    elif args.command == "wormhole":
-        run_phase4a_wormhole_experiment(n_sphere=args.n_sphere, out_dir=args.out_dir, prefer_cuda=prefer_cuda)
+    elif args.command == "entanglement-scaling":
+        run_v102_entanglement_scaling_experiment(out_dir=args.out_dir, prefer_cuda=prefer_cuda)
 
-    elif args.command == "blackhole":
-        run_phase4b_blackhole_experiment(N=args.N, out_dir=args.out_dir, prefer_cuda=prefer_cuda)
+    elif args.command == "phase-hmc":
+        run_v102_phase_transition_hmc_experiment(
+            N=args.N, L=args.L, beta=args.beta, B_chains=args.chains,
+            out_dir=args.out_dir, prefer_cuda=prefer_cuda,
+        )
 
-    elif args.command == "emergent-time":
-        run_phase4c_emergent_time_experiment(d_clock=args.d_clock, out_dir=args.out_dir, prefer_cuda=prefer_cuda)
+    elif args.command == "membrane-control":
+        run_v102_membrane_control_experiment(N=args.N, out_dir=args.out_dir, prefer_cuda=prefer_cuda)
 
-    elif args.command == "bigbang":
-        run_phase4d_bigbang_experiment(out_dir=args.out_dir, prefer_cuda=prefer_cuda)
+    elif args.command == "watch":
+        run_v102_classic_viewer(
+            mode=args.mode, N=args.N, frames=args.frames,
+            save_gif=args.save_gif, headless=args.headless, fps=args.fps,
+            prefer_cuda=prefer_cuda,
+        )
+
+    elif args.command == "watch-quantum":
+        run_v102_live_observatory(
+            N=args.N, auto_demo=args.demo, save_gif=args.save_gif,
+            gif_frames=args.frames, prefer_cuda=prefer_cuda,
+        )
 
     elif args.command == "suite":
         t0 = time.time()

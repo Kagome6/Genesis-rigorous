@@ -120,8 +120,20 @@ class HardwareSafetyGuard:
             "device": str(self.device),
         }
 
+    def reset_peak_vram(self) -> None:
+        """Resets CUDA peak memory statistics before profiling a benchmark step."""
+        if self.use_cuda:
+            torch.cuda.reset_peak_memory_stats(0)
+
+    def get_peak_vram_mb(self) -> float:
+        """Returns true peak CUDA allocated VRAM in MiB since last reset."""
+        if self.use_cuda:
+            torch.cuda.synchronize()
+            return float(torch.cuda.max_memory_allocated(0) / (1024.0 ** 2))
+        return 0.0
+
     def check_runtime(self) -> Tuple[float, float]:
-        """Checks live RSS RAM and CUDA allocated VRAM; raises MemoryError if exceeded."""
+        """Checks live RSS RAM and live post-step CUDA allocated VRAM (MiB); use get_peak_vram_mb() for true peak."""
         if psutil is not None:
             ram_mb = psutil.Process().memory_info().rss / (1024.0 ** 2)
         else:

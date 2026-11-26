@@ -1,8 +1,9 @@
 """
-Master 17-Test Mathematical & Gauge-Invariance Verification Suite for Project Genesis-Rigorous.
-Verifies every physics engine (Exact HFB, BdG, Gauss Casimir, Cholesky S_bos, Point-Probe,
-Adjoint Dirac + Daleckii-Krein, O(N^3) Matrix-Native, 4D Gauge/Higgs, 6D Clifford, GKP Chiral Index)
-to machine precision / statistical exactness in < 5 seconds on GPU.
+Master 20-Test Mathematical & U(N)-Covariance Verification Suite for Project Genesis-Rigorous v1.0.2.
+Verifies every physics engine (HFB, BdG, Traceless su(N) BdG, Coulomb-Projected Casimir,
+Cholesky S_bos, Point-Probe, Adjoint Dirac + Daleckii-Krein, O(N^4)-Memory Matrix-Native,
+4D Gauge/Higgs, 6D Clifford, Fuzzy GW Chiral Index, and Exact U(N)-Singlet Lattice HMC)
+to machine precision / statistical exactness in < 6 seconds.
 """
 
 import time
@@ -15,6 +16,7 @@ from .dirac_matter import AdjointDiracMatterSector
 from .exact_hfb import GenesisQuantumCore, build_hermitian_basis, build_su2_irrep
 from .experiments.phase3c_gauge import build_exact_4d_hessian_matrix_free
 from .experiments.phase3d_chiral import build_6d_clifford_gammas, build_exact_gkp_chiral_dirac
+from .hmc_singlet import ExactSingletMQMHMC
 from .matrix_native import MatrixNativeQuantumCore
 from .safety import HardwareSafetyGuard, SafetyConfig
 
@@ -32,7 +34,7 @@ def run_master_verification(prefer_cuda: bool = True) -> Dict[str, object]:
     results = {}
 
     print("=" * 92)
-    print(f"PROJECT GENESIS-RIGOROUS — MASTER 17-TEST MATHEMATICAL AUDIT (Device={device})")
+    print(f"PROJECT GENESIS-RIGOROUS v1.0.2 — MASTER 20-TEST MATHEMATICAL AUDIT (Device={device})")
     print("=" * 92)
 
     def record(tid: str, desc: str, passed: bool, detail: str):
@@ -232,7 +234,7 @@ def run_master_verification(prefer_cuda: bool = True) -> Dict[str, object]:
     tr_h2_ym_nat = float(3.0 * (2.0 / 3.0) * (g_t * g_t) * torch.sum(qn["lam"]))
     err_tr = abs(tr_h2_ym_ref - tr_h2_ym_nat) / max(abs(tr_h2_ym_ref), 1e-12)
     err_nat = max(abs(Ecl_n - Ecl_ref), abs(qn["E_tn"] - float(Etn1)), abs(ez_nat - ez_ref), err_tr)
-    record("T13", "O(N^3) Engine vs HFB (Y=0) & Y!=0 Tr(H2)", err_nat < 1e-10, f"MaxErr={err_nat:.2e} (TrH2={err_tr:.2e})")
+    record("T13", "Native Engine vs HFB (Y=0) & Y!=0 Tr(H2)", err_nat < 1e-10, f"MaxErr={err_nat:.2e} (TrH2={err_tr:.2e})")
 
     En1, Gn1, _ = native.total_energy_and_grad(Y_r, g=g_t, mu=mu_t, nu=nu_t, kappa=0.2, g1=0.5, g2=0.1)
     En2, _, _ = native.total_energy_and_grad(Y_rot, g=g_t, mu=mu_t, nu=nu_t, kappa=0.2, g1=0.5, g2=0.1, compute_grad=False)
@@ -242,7 +244,7 @@ def run_master_verification(prefer_cuda: bool = True) -> Dict[str, object]:
             - native.total_energy_and_grad(Y_r - 1e-6 * dY, g=g_t, mu=mu_t, nu=nu_t, kappa=0.2, g1=0.5, g2=0.1, compute_grad=False)[0]) / 2e-6
     an_n = float(torch.real(torch.sum(dY * Gn1.conj())))
     err_ng = abs(fd_n - an_n) / max(abs(fd_n), 1e-12)
-    record("T14", "O(N^3) U(N) Invariance & Envelope Grad", abs(En1 - En2) < 1e-11 and err_ng < 1e-7, f"dE={abs(En1-En2):.2e}, Grad={err_ng:.2e}")
+    record("T14", "Native U(N) Covariance & Envelope Grad", abs(En1 - En2) < 1e-11 and err_ng < 1e-7, f"dE={abs(En1-En2):.2e}, Grad={err_ng:.2e}")
 
     # T15: Phase 3C 4D Gauge-Higgs Hessian U(6) Invariance
     L3 = build_su2_irrep(3, device)
@@ -280,15 +282,59 @@ def run_master_verification(prefer_cuda: bool = True) -> Dict[str, object]:
     Vz = ev_n[:, zm]
     g5_ev = torch.real(torch.linalg.eigvalsh(0.5 * (Vz.conj().T @ g5_n @ Vz + (Vz.conj().T @ g5_n @ Vz).conj().T)))
     idx_ch = int(torch.sum(g5_ev > 0.5) - torch.sum(g5_ev < -0.5))
-    record("T17", "GKP Chiral Dirac Gauge, {D,g5}=0 & Index=3", g_ch < 1e-12 and ac_ch < 1e-12 and idx_ch == 3,
-           f"Gauge={g_ch:.1e}, {{D,g5}}={ac_ch:.1e}, NoisyIdx={idx_ch:+d}")
+    record("T17", "Fuzzy GW Dirac Cov., {D,g5}=0 & Index=3", g_ch < 1e-12 and ac_ch < 1e-12 and idx_ch == 3,
+           f"Cov={g_ch:.1e}, {{D,g5}}={ac_ch:.1e}, NoisyIdx={idx_ch:+d}")
+
+    # T18: v1.0.2 Traceless su(N) BdG Link Sector (exact Tr(E_k)=0 & U(N) covariance)
+    E_su1, _, f_su1, Em_su1 = core.bdg_link_sector_traceless(Y_r, c1=1.0, c2=0.0, normalize_by_R2=True)
+    E_su2, _, f_su2, Em_su2 = core.bdg_link_sector_traceless(Y_rot, c1=1.0, c2=0.0, normalize_by_R2=True)
+    S_su1 = float(core.bdg_subregion_entropy_traceless(Em_su1, f_su1, Q_0, Nf=1))
+    S_su2 = float(core.bdg_subregion_entropy_traceless(Em_su2, f_su2, Q_rot, Nf=1))
+    max_tr_su = float(torch.max(torch.abs(torch.einsum("kii->k", Em_su1))))
+    err_su_cov = max(abs(float(E_su1) - float(E_su2)), abs(S_su1 - S_su2))
+    record("T18", "Traceless su(N) BdG Tr=0 & U(N) Cov.", max_tr_su < 1e-13 and err_su_cov < 1e-12,
+           f"max|Tr(E)|={max_tr_su:.1e}, CovErr={err_su_cov:.1e}")
+
+    # T19: v1.0.2 ExactSingletMQMHMC Analytical Forces (F_X & Unitary Polyakov F_U) vs FD
+    hmc_cpu = torch.device("cpu")
+    hmc_fd = ExactSingletMQMHMC(N=4, L=6, beta=1.5, g=0.5, mu=1.1, nu=1.8, gauged=True, device=hmc_cpu)
+    gen_h = torch.Generator(device="cpu").manual_seed(202619)
+    Xh = hmc_fd.sample_hermitian_momentum((1, 6, 3), gen_h) * 0.4
+    Uh = torch.linalg.matrix_exp(1j * hmc_fd.sample_hermitian_momentum((1,), gen_h) * 0.35)
+    FX_h, FU_h = hmc_fd.forces(Xh, Uh)
+    dXh = hmc_fd.sample_hermitian_momentum((1, 6, 3), gen_h)
+    eps_h = 1e-6
+    fd_Xh = float((hmc_fd.action_and_observables(Xh + eps_h * dXh, Uh)["S_tot"][0]
+                   - hmc_fd.action_and_observables(Xh - eps_h * dXh, Uh)["S_tot"][0]) / (2.0 * eps_h))
+    an_Xh = float(torch.real(torch.sum(FX_h * dXh.conj())))
+    err_FXh = abs(fd_Xh - an_Xh) / max(abs(an_Xh), 1e-12)
+    dEh = hmc_fd.sample_hermitian_momentum((1,), gen_h)
+    fd_Uh = float((hmc_fd.action_and_observables(Xh, torch.linalg.matrix_exp(1j * eps_h * dEh) @ Uh)["S_tot"][0]
+                   - hmc_fd.action_and_observables(Xh, torch.linalg.matrix_exp(-1j * eps_h * dEh) @ Uh)["S_tot"][0]) / (2.0 * eps_h))
+    an_Uh = float(torch.real(torch.sum(FU_h * dEh.conj())))
+    err_FUh = abs(fd_Uh - an_Uh) / max(abs(an_Uh), 1e-12)
+    record("T19", "Singlet HMC Forces (F_X, Polyakov F_U)", err_FXh < 1e-7 and err_FUh < 1e-7,
+           f"Err(F_X)={err_FXh:.2e}, Err(F_U)={err_FUh:.2e}")
+
+    # T20: v1.0.2 ExactSingletMQMHMC Free-HO Exact & Schwinger-Dyson Identity
+    L_ho, beta_ho = 8, 2.0
+    a_ho = beta_ho / L_ho
+    eig_lat = (4.0 / a_ho) * (np.sin(np.pi * np.arange(L_ho) / L_ho) ** 2) + a_ho * 1.0
+    trX2_ho_ex = 3.0 * (3 ** 2) * float(np.mean(1.0 / eig_lat))
+    hmc_ho = ExactSingletMQMHMC(N=3, L=L_ho, beta=beta_ho, g=0.0, mu=1.0, nu=0.0, gauged=False, device=hmc_cpu)
+    res_ho = hmc_ho.run_chains(hmc_ho.sample_hermitian_momentum((24, L_ho, 3), gen_h) * 0.3,
+                               n_therm=60, n_meas=80, meas_every=2, dt=0.08, n_leapfrog=6, seed=202620)
+    z_ho = abs(res_ho["trX2_mean"] - trX2_ho_ex) / max(res_ho["trX2_se"], 1e-12)
+    record("T20", "Singlet HMC Free-HO & Schwinger-Dyson", z_ho < 3.5 and res_ho["sd_zscore"] < 3.5,
+           f"HO={z_ho:.2f}σ, SD={res_ho['sd_zscore']:.2f}σ, acc={res_ho['accept_rate']:.2f}")
 
     n_pass = sum(1 for r in results.values() if r["passed"])
     n_tot = len(results)
     ram_mb, vram_mb = guard.check_runtime()
+    peak_vram_mb = guard.get_peak_vram_mb()
     elapsed = time.time() - t0
     print("-" * 92)
-    print(f"[MASTER AUDIT] {n_pass}/{n_tot} TESTS PASSED | Elapsed: {elapsed:.2f}s | RAM: {ram_mb:.1f} MB | VRAM: {vram_mb:.1f} MB")
+    print(f"[MASTER AUDIT] {n_pass}/{n_tot} TESTS PASSED | Elapsed: {elapsed:.2f}s | RAM: {ram_mb:.1f} MB | Live/Peak VRAM: {vram_mb:.1f}/{peak_vram_mb:.1f} MiB")
     print("=" * 92)
     guard.cleanup()
-    return {"passed_count": n_pass, "total_count": n_tot, "all_passed": n_pass == n_tot, "elapsed_sec": elapsed, "ram_mb": ram_mb, "vram_mb": vram_mb, "tests": results}
+    return {"passed_count": n_pass, "total_count": n_tot, "all_passed": n_pass == n_tot, "elapsed_sec": elapsed, "ram_mb": ram_mb, "vram_mb": vram_mb, "peak_vram_mb": peak_vram_mb, "tests": results}
