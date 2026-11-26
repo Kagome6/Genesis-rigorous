@@ -85,8 +85,8 @@
 | **Exp 2** | **[非摂動 HMC]** 一次相転移（$\nu_c=1.50$）＆ 強結合量子融解（$N=4, L=12, \beta=3.0$） | $g=0.30$ で量子相転移点 $\nu_c^{\mathrm{quantum}} \approx 1.65\text{–}1.68$ を検出し、球面枝で HFB–HMC の $\langle\mathrm{Tr}X^2\rangle$ が `0.6%–0.8%` 一致（エネルギー差 $+18.45$ をゲージ ZPE $+4.64$ ＋格子分散 $+15.74$ に分解）。強結合 $g \in [0.25, 1.45]$（全 7 点で Schwinger–Dyson 合格）で **量子融解**（`AlgErr: 0.157 → 10.53`）、**Polyakov ループ閉じ込め**（`|Tr U|/N: 0.983 → 0.220`）、HFB 半径破綻（$g=0.85$ で **`48.2%`** 誤差）を観測。 | `380.8秒` |
 | **Exp 3** | **[膜対照実験]** 随伴 Dirac vs 汎用 $\mathrm{Tr}(\hat{\rho}Y^2)$ 弾性膜応答（$N=8$, $E_{\mathrm{src}}=1254.38$） | 2 体近距離引力（$25^\circ$ で汎用 $\mathrm{Tr}(\hat{\rho}Y^2)$ `-14.18` vs Dirac `-8.77`）は **弾性膜の波束重なりに普遍的** であることを立証。一方、1 体局所曲率の符号は随伴 Dirac（長球型赤道くびれ `dK_N = +11.33%`）と汎用動径井戸（扁球型極へこみ `dK_N = -9.76%`）で逆転。 | `211.9秒` |
 
-<img width="1584" height="924" alt="watch_v102_quantum_melting" src="https://github.com/user-attachments/assets/9d7f5178-dcd0-499e-99ca-1bd4ce9e680f" />
-<em><strong>リアルタイム HMC 融解 ＆ リンク局所性デモ（<code>python genesis_cli.py watch-quantum --demo</code>）</strong>：厳密な U(6) ゲージ一重項 HMC で量子結合 g を増大させた際の 2D 球面の融解過程。右下メーターは、HMC の各スナップショット行列上で補助トレースレス su(N) リンクのエンタングルメント局所性（幾何学的な北極帽カット vs ランダムカット）をリアルタイム診断したもので、球面が溶けると両者の差が消失する様子を可視化しています（※ボソン自身のレプリカ法エンタングルメントではなく、背景行列上の診断表示）。</em>
+<img width="2250" height="1560" alt="fig8_v102_exp1_entanglement_scaling" src="https://github.com/user-attachments/assets/dabd7e38-4aa7-430f-b099-7b8e67c53a70" />
+<em><strong> N=6→24 と行列サイズを増やしたとき、ファジー球は O(N)、ランダム行列 GUE は O(N2) に真っ二つに分かれる。「量子もつれの増え方や切り口の最小化（境界則 $\sim N$ か、体積則 $\sim N^2$ か）」だけで、行列の中に本物の2次元空間（球面）が生まれている状態と単なるデタラメな混沌（ランダム行列）とを厳密に見分けられる。 </em>
 
 
 ### (B) 継承・監査済み Phase 1–3 ベースライン
