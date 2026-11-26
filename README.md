@@ -50,6 +50,8 @@
 | **Phase 3C** | **[恒等式検算]** 重なりブレーン $U(2)$ ゲージボソン ＆ クーロン枝行列ヒッグス分裂（$N=12, D=4$） | $v=0$ で 12 モード厳密縮退（`3.3e-13`）。外部ブレーン分離 $v>0$ で物理モード `436→434`（ゴールドストーン2個吸収）、対角 $U(1)\times U(1)$ 光子ズレ `2.1e-13`（基底 $\omega^2=\mu^2=1$ 不変）、非対角 $W^\pm$ が厳密ヒッグス式 $\Delta\omega_W^2 = g^2 v^2$ と **`r = 1.00000000`（誤差 `2.2e-13`）** で一致。非可換 $SU(2)$ 4次自己結合も検算。 | **`3.0秒`** / `24 MB` |
 | **Phase 3D-2** | **[指数検算]** ファジー Ginsparg–Wilson（Balachandran–Immirzi 2003 系）キラル素粒子 3 世代 | 双基本ファジー GW キラル・ディラック演算子（$\{\mathcal{D}_{\mathrm{GW}},\gamma_5\}=0$ `1.8e-15`）で磁束差 $q=0,1,2,3$ に対し代数指数恒等式 $\mathrm{Ind}(\mathcal{D}_{\mathrm{GW}})=q$ に従う質量ゼロ片巻き世代が **`0, 1, 2, 3` 世代** 出現し、大振幅量子ノイズ下でも `|E_0| <= 6.6e-16` で保護されることを確認。 | *(3D に含む)* |
 
+<img width="1627" height="965" alt="watch_emergence_N8" src="https://github.com/user-attachments/assets/af2db573-2fd6-4038-ab45-e4f7b7a0a20d" />
+
 ---
 
 ## 3. リポジトリ構成
@@ -131,7 +133,7 @@ python genesis_cli.py chiral
 
 ## 7. AI Collaboration & Transparency Statement
 
-This repository and its accompanying technical report were developed through an interactive human–AI research collaboration between the human author (**Alpha496**) and **Google Gemini** (using the Antigravity agentic coding environment).
+This repository and its accompanying technical report were developed through an interactive human–AI research collaboration between the human author (**Alpha496**) and **Gemini by Google DeepMind** ((Gemini 4 Neon)using the Antigravity agentic coding environment).
 
 - **Role of AI**: Assisted with mathematical cross-checking, PyTorch/CUDA numerical implementation, debugging of matrix-model edge cases (e.g., gauge-orbit zero-mode projection and Daleckii–Krein derivative stabilization), automated verification-suite construction, and drafting of English/Japanese documentation.
 - **Role & Responsibility of the Human Author**: Conceived the project scope, directed all research decisions and external-audit revisions, executed and inspected the numerical benchmarks on local hardware, and assumes full responsibility for the scientific accuracy, honest scope boundaries, and published artifacts.
