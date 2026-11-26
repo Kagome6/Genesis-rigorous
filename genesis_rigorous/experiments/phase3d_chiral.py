@@ -130,7 +130,7 @@ def run_phase3d_chiral_experiment(out_dir: str = "", prefer_cuda: bool = True) -
                     Eb, Gb = core.classical_energy_and_grad(Y, g=g, mu=mu, nu=nu, flux_triples=double_flux)
                 E0, G = Eb + e4, Gb + g4
                 gn = float(torch.sqrt(torch.real(torch.sum(G * G.conj()))))
-                if gn < 1e-4 and step > 60: break
+                if do_q and gn < 1e-4 and step > 60: break
                 if pY is not None and pG is not None:
                     sY, dG = Y - pY, G - pG
                     sy, ss = float(torch.real(torch.sum(sY * dG.conj()))), float(torch.real(torch.sum(sY * sY.conj())))
@@ -212,22 +212,51 @@ def run_phase3d_chiral_experiment(out_dir: str = "", prefer_cuda: bool = True) -
             print(f"  [3D-2 q={q}, noise={amp:.1f}] #Zero={nz}, Index={idx_c:+d}, max|E0|={max_z:.1e}, KK_gap={kk_gap:.4f}")
             chiral_recs.append({"q": q, "noise": amp, "n_zero": nz, "chiral_index": idx_c, "max_E0": max_z, "kk_gap": kk_gap, "low16": torch.sort(aew)[0][:16].cpu().numpy().tolist()})
 
-    fig, axes = plt.subplots(1, 2, figsize=(14.5, 5.4), dpi=140)
-    fig.suptitle("Project Genesis-Rigorous (Unified Phase 3D): 4D Emergent Space & Protected Chiral Fermion Generations", fontsize=13, fontweight="bold", y=0.98)
-    axes[0].bar(range(1, 7), g6_ev, color=["gray", "gray", "royalblue", "royalblue", "royalblue", "royalblue"], edgecolor="black")
-    axes[0].set_title(f"1. 6x6 Provost-Vallee Metric (Rank={eff_dim}D Space!)"); axes[0].set_xlabel("Eigenvalue Index"); axes[0].grid(True, axis="y", alpha=0.3)
+    # 6D Laplacian spectrum for honest reducible-block diagnostic
+    lam_6d = torch.clamp(safe_eigvalsh(core.build_laplacian_mat(Y_B)), min=0.0).cpu().numpy()
+    n_zero_6d = int(np.sum(lam_6d < 1e-6))
+
+    fig, axes = plt.subplots(2, 2, figsize=(15.0, 10.2), dpi=140)
+    fig.suptitle("Genesis-Rigorous v1.0.1 — Phase 3D: 4D Emergent Product Space (S^2 x S^2) & Protected Chiral Generations", fontsize=13, fontweight="bold", y=0.98)
+
+    axes[0, 0].bar(range(1, 7), g6_ev, color=["gray", "gray", "royalblue", "royalblue", "royalblue", "royalblue"], edgecolor="black")
+    axes[0, 0].set_title(f"1. 6D Point-Probe Provost-Vallee Metric (Rank={eff_dim})\n[2 Normal Zero Modes + 4 Degenerate Tangent Modes]")
+    axes[0, 0].set_xlabel("Metric Eigenvalue Index (1..6)"); axes[0, 0].set_ylabel("Provost-Vallee Eigenvalue"); axes[0, 0].grid(True, axis="y", alpha=0.3)
+
+    k_show = min(40, len(lam_6d))
+    axes[0, 1].plot(range(k_show), lam_6d[:k_show], "bo", ms=4.5, label=f"Emergent 6D Delta_Y ({n_zero_6d} Zero Modes: Reducible Blocks)")
+    axes[0, 1].set_title(f"2. Emergent 6D Laplacian Spectrum (Cross-Comm={cross_err:.1e})\n[Raw Eigenvalues lambda_k; {n_zero_6d} Connected Sector Blocks]")
+    axes[0, 1].set_xlabel("Mode Index k"); axes[0, 1].set_ylabel("6D Laplacian Eigenvalue lambda_k"); axes[0, 1].legend(fontsize=8); axes[0, 1].grid(True, alpha=0.3)
+
+    qs = [0, 1, 2, 3]
+    idx_clean = [[r["chiral_index"] for r in chiral_recs if r["q"] == q and r["noise"] == 0.0][0] for q in qs]
+    idx_noisy = [[r["chiral_index"] for r in chiral_recs if r["q"] == q and r["noise"] > 0.0][0] for q in qs]
+    axes[1, 0].plot(qs, idx_clean, "b-o", lw=2.2, ms=7, label="Clean Fuzzy Branes: Index(D) = n_+ - n_-")
+    axes[1, 0].plot(qs, idx_noisy, "r^", ms=8, label="Noisy Branes (amp=1.0..1.5): Protected")
+    axes[1, 0].plot(qs, qs, "k:", lw=1.6, label="Exact Index Theorem = q")
+    axes[1, 0].set_title("3. Emergent Massless Chiral Generations vs Flux q\n[q = N_2 - N_1 = 0, 1, 2, 3 Protected Against Noise]")
+    axes[1, 0].set_xlabel("Topological Flux Difference q = N_2 - N_1"); axes[1, 0].set_ylabel("Chiral Index"); axes[1, 0].set_xticks(qs); axes[1, 0].legend(fontsize=8); axes[1, 0].grid(True, alpha=0.3)
+
     rc3 = [r for r in chiral_recs if r["q"] == 3 and r["noise"] == 0.0][0]
     rn3 = [r for r in chiral_recs if r["q"] == 3 and r["noise"] > 0.0][0]
-    axes[1].plot(range(16), rc3["low16"], "bo", ms=7, label="q=3 Clean (3 Exact Zero Modes)")
-    axes[1].plot(range(16), rn3["low16"], "r^", ms=6.5, label="q=3 Noisy (3 Zero Modes Stay E=0!)")
-    axes[1].axvline(2.5, color="green", ls="--", label="3 Protected Chiral Generations")
-    axes[1].set_title("2. Topological Protection of 3 Chiral Generations"); axes[1].legend(fontsize=8); axes[1].grid(True, alpha=0.3)
-    plt.tight_layout(rect=[0, 0, 1, 0.92]); plt.savefig(os.path.join(out_dir, "phase3d_4d_chiral_dashboard.png"), dpi=150); plt.close(fig)
+    axes[1, 1].plot(range(16), rc3["low16"], "bo", ms=6.5, label="q=3 Clean (3 Exact Zero Modes + KK Tower)")
+    axes[1, 1].plot(range(16), rn3["low16"], "r^", ms=6.5, label=f"q=3 Noisy (amp={rn3['noise']:.1f}): 3 Zero Modes Stay E=0")
+    axes[1, 1].axvline(2.5, color="green", ls="--", label="3 Protected Chiral Generations (|E_0| < 1e-15)")
+    axes[1, 1].set_title("4. Topological Protection of 3 Chiral Generations (q=3)\n[Massive KK Modes Scatter, Chiral Zero Modes Stay Exact]")
+    axes[1, 1].set_xlabel("Sorted Fermion Eigenmode Index"); axes[1, 1].set_ylabel("Dirac Energy |E_n|"); axes[1, 1].legend(fontsize=8); axes[1, 1].grid(True, alpha=0.3)
+
+    plt.tight_layout(rect=[0, 0, 1, 0.94]); plt.savefig(os.path.join(out_dir, "phase3d_4d_chiral_dashboard.png"), dpi=150); plt.close(fig)
 
     ram_mb, vram_mb = guard.check_runtime()
     report = {
         "timestamp": ts, "out_dir": out_dir,
-        "emergent_4d": {"tr_A": tr_A, "E_B": E_B, "cross_comm_err": cross_err, "metric_6x6_evals": g6_ev, "emergent_dim": eff_dim},
+        "emergent_4d": {
+            "tr_A": tr_A, "E_B": E_B, "cross_comm_err": cross_err,
+            "rL2_evals": rL_ev.tolist(), "rR2_evals": rR_ev.tolist(),
+            "probe_rL": best_rL, "probe_rR": best_rR, "probe_lmin": l6_m,
+            "metric_6x6_evals": g6_ev, "emergent_dim": eff_dim,
+            "n_zero_laplacian_6d": n_zero_6d, "laplacian_6d_first40": lam_6d[:40].tolist(),
+        },
         "chiral_fermions": chiral_recs,
         "stats": {"elapsed_sec": time.time() - t0, "ram_mb": ram_mb, "vram_mb": vram_mb},
     }

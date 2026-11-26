@@ -37,15 +37,6 @@ import sys
 import time
 
 from genesis_rigorous import __version__
-from genesis_rigorous.experiments import (
-    run_phase1_experiment,
-    run_phase2_gravity_experiment,
-    run_phase3a_dynamics_experiment,
-    run_phase3b_large_n_experiment,
-    run_phase3c_gauge_experiment,
-    run_phase3d_chiral_experiment,
-)
-from genesis_rigorous.verification import run_master_verification
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -83,7 +74,7 @@ def build_parser() -> argparse.ArgumentParser:
     p_rt.add_argument("--state-pt", type=str, default="")
     p_rt.add_argument("--M-body", type=float, default=35.0)
     p_rt.add_argument("--M-pulse", type=float, default=120.0)
-    p_rt.add_argument("--n-steps", type=int, default=420)
+    p_rt.add_argument("--n-steps", type=int, default=450)
     p_rt.add_argument("--out-dir", type=str, default="")
 
     # large-n (Phase 3B)
@@ -100,6 +91,36 @@ def build_parser() -> argparse.ArgumentParser:
     p_ch = sub.add_parser("chiral", help="Phase 3D: 4D S^2xS^2 emergent space & Atiyah-Singer chiral generations")
     p_ch.add_argument("--out-dir", type=str, default="")
 
+    # wormhole (Phase 4A)
+    p_wh = sub.add_parser("wormhole", help="Phase 4A: ER=EPR entanglement wormhole & real-time traversable signal test")
+    p_wh.add_argument("--n-sphere", type=int, default=6)
+    p_wh.add_argument("--out-dir", type=str, default="")
+
+    # blackhole (Phase 4B)
+    p_bh = sub.add_parser("blackhole", help="Phase 4B: Hawking-Page melting, butterfly scrambling & unitary Page curve")
+    p_bh.add_argument("--N", type=int, default=8)
+    p_bh.add_argument("--out-dir", type=str, default="")
+
+    # emergent-time (Phase 4C)
+    p_et = sub.add_parser("emergent-time", help="Phase 4C: Page-Wootters emergent time & redshift from timeless WDW state")
+    p_et.add_argument("--d-clock", type=int, default=48)
+    p_et.add_argument("--out-dir", type=str, default="")
+
+    # bigbang (Phase 4D)
+    p_bb = sub.add_parser("bigbang", help="Phase 4D: Matrix Big Bang, causality crystallization & false vacuum decay")
+    p_bb.add_argument("--out-dir", type=str, default="")
+
+    # watch (Interactive Zero-Cheat Live Spacetime Observatory!)
+    p_wa = sub.add_parser("watch", help="Launch interactive zero-cheat GUI animation (emergence | metastable | wave)")
+    p_wa.add_argument("--mode", type=str, default="emergence", choices=["emergence", "metastable", "wave"],
+                      help="emergence: 0D chaos -> fuzzy sphere + QFIM; metastable: double shell; wave: gravitational wave")
+    p_wa.add_argument("--N", type=int, default=8, help="Matrix size N (default 8; try 10 or 12 for sharper sphere)")
+    p_wa.add_argument("--frames", type=int, default=68, help="Number of trajectory frames")
+    p_wa.add_argument("--fps", type=int, default=16, help="Playback FPS")
+    p_wa.add_argument("--state-pt", type=str, default="", help="Optional Phase 1 checkpoint for --mode wave")
+    p_wa.add_argument("--save-gif", type=str, default="", help="Optional path to also export animated GIF")
+    p_wa.add_argument("--headless", action="store_true", help="Compute without opening GUI window (for testing/GIF export)")
+
     # suite (End-to-end showcase)
     p_su = sub.add_parser("suite", help="Run integrated end-to-end showcase (verify + phase1 + gauge + chiral [+ gravity])")
     p_su.add_argument("--fast", action="store_true", help="Fast smoke-test mode (N=6 phase1 + gauge + chiral, ~90s total)")
@@ -112,6 +133,28 @@ def main():
     parser = build_parser()
     args = parser.parse_args()
     prefer_cuda = not args.cpu
+
+    if args.command == "watch":
+        from genesis_rigorous.experiments.spacetime_viewer import run_spacetime_viewer
+        run_spacetime_viewer(
+            mode=args.mode, N=args.N, n_frames=args.frames, state_pt=args.state_pt,
+            fps=args.fps, save_gif=args.save_gif, headless=args.headless, prefer_cuda=prefer_cuda,
+        )
+        return
+
+    from genesis_rigorous.experiments import (
+        run_phase1_experiment,
+        run_phase2_gravity_experiment,
+        run_phase3a_dynamics_experiment,
+        run_phase3b_large_n_experiment,
+        run_phase3c_gauge_experiment,
+        run_phase3d_chiral_experiment,
+        run_phase4a_wormhole_experiment,
+        run_phase4b_blackhole_experiment,
+        run_phase4c_emergent_time_experiment,
+        run_phase4d_bigbang_experiment,
+    )
+    from genesis_rigorous.verification import run_master_verification
 
     if args.command == "verify":
         res = run_master_verification(prefer_cuda=prefer_cuda)
@@ -150,6 +193,18 @@ def main():
 
     elif args.command == "chiral":
         run_phase3d_chiral_experiment(out_dir=args.out_dir, prefer_cuda=prefer_cuda)
+
+    elif args.command == "wormhole":
+        run_phase4a_wormhole_experiment(n_sphere=args.n_sphere, out_dir=args.out_dir, prefer_cuda=prefer_cuda)
+
+    elif args.command == "blackhole":
+        run_phase4b_blackhole_experiment(N=args.N, out_dir=args.out_dir, prefer_cuda=prefer_cuda)
+
+    elif args.command == "emergent-time":
+        run_phase4c_emergent_time_experiment(d_clock=args.d_clock, out_dir=args.out_dir, prefer_cuda=prefer_cuda)
+
+    elif args.command == "bigbang":
+        run_phase4d_bigbang_experiment(out_dir=args.out_dir, prefer_cuda=prefer_cuda)
 
     elif args.command == "suite":
         t0 = time.time()

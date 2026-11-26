@@ -2,7 +2,7 @@
 Project Genesis-Rigorous: Unified Emergent Spacetime, Gravity, Gauge & Chiral Matter Suite.
 """
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 from .safety import HardwareSafetyGuard, SafetyConfig, STOP_REQUESTED, safe_eigh, safe_eigvalsh
 from .exact_hfb import GenesisQuantumCore, analyze_matrix_geometry, build_hermitian_basis, build_su2_irrep

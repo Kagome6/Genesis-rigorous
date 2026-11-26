@@ -124,8 +124,16 @@ def run_phase3c_gauge_experiment(
             sp_all = sorted([float(ew_p[i]) for i in range(ew_p.shape[0]) if classify_mode(V_p[:, i])[2] > 0.80])
             mult_spread = float(max(sp_all[:12]) - min(sp_all[:12]))
         dW, dPh, ex = off_sp[0] - om2_W0, diag_sp[0] - om2_ph0, (g * v) ** 2
+        kk_diag = [x for x in diag_sp if x > om2_ph0 + 1.0]
+        kk_off = [x for x in off_sp if x > off_sp[0] + 1.0]
         print(f"  [3C v={v:4.1f}] Phys={ew_p.shape[0]} | Photon d(om^2)={dPh:.2e} | W+- d(om^2)={dW:.5f} vs g^2 v^2={ex:.5f} (err={abs(dW-ex):.2e})")
-        sweep.append({"vev": v, "n_phys": int(ew_p.shape[0]), "photon_shift": dPh, "W_shift": dW, "exact_g2_v2": ex, "err": abs(dW - ex)})
+        sweep.append({
+            "vev": v, "n_phys": int(ew_p.shape[0]), "n_gauge": int(r_g),
+            "photon_om2": diag_sp[0], "photon_shift": dPh,
+            "W_om2": off_sp[0], "W_shift": dW, "exact_g2_v2": ex, "err": abs(dW - ex),
+            "kk_diag_om2": kk_diag[0] if kk_diag else float("nan"),
+            "kk_off_om2": kk_off[0] if kk_off else float("nan"),
+        })
 
     # Non-Abelian SU(2) vs Abelian U(1) quartic self-interaction
     Y0 = torch.stack([torch.kron(eye_2, alpha_star * L_n[i]) for i in range(3)], dim=0)
@@ -137,7 +145,7 @@ def run_phase3c_gauge_experiment(
     A1u, A2u = torch.zeros_like(Y0), torch.zeros_like(Y0)
     A1u[0], A2u[1] = torch.kron(tau_mats[0], a_sp), torch.kron(tau_mats[0], a_sp)
     na_recs = []
-    for ep in [0.2, 0.5, 1.0]:
+    for ep in [0.2, 0.4, 0.6, 0.8, 1.0]:
         es = ym_e(Y0 + ep * A1s + ep * A2s) - ym_e(Y0 + ep * A1s) - ym_e(Y0 + ep * A2s) + ym_e(Y0)
         eu = ym_e(Y0 + ep * A1u + ep * A2u) - ym_e(Y0 + ep * A1u) - ym_e(Y0 + ep * A2u) + ym_e(Y0)
         na_recs.append({"eps": ep, "E_int_SU2": es, "E_int_U1": eu, "ratio_eps4": es / (ep ** 4)})
@@ -145,16 +153,31 @@ def run_phase3c_gauge_experiment(
     max_higgs_err = max(r["err"] for r in sweep)
     max_ph_drift = max(abs(r["photon_shift"]) for r in sweep)
 
-    fig, axes = plt.subplots(1, 2, figsize=(13.5, 5.2), dpi=140)
-    fig.suptitle(f"Project Genesis-Rigorous (Unified Phase 3C, N={N}): U(2) Gauge Bosons & Matrix Higgs Mechanism", fontsize=13, fontweight="bold", y=0.98)
+    fig, axes = plt.subplots(1, 3, figsize=(18.0, 5.4), dpi=140)
+    fig.suptitle(f"Genesis-Rigorous v1.0.1 — Phase 3C (N={N}=2x{n_sphere}): Coulomb-Branch U(2) Matrix Higgs & Non-Abelian Coupling", fontsize=13, fontweight="bold", y=0.98)
     vs = [r["vev"] for r in sweep]
-    axes[0].plot(vs, [r["W_shift"] for r in sweep], "ro", ms=8, label=f"W+- d(om^2) (MaxErr={max_higgs_err:.1e})")
-    axes[0].plot(vs, [r["exact_g2_v2"] for r in sweep], "k--", label="Exact g^2 v^2")
-    axes[0].plot(vs, [r["photon_shift"] for r in sweep], "b-s", label="U(1)xU(1) Photons (0)")
-    axes[0].set_title("1. Higgs Mass^2 Splitting U(2) -> U(1)xU(1)"); axes[0].legend(); axes[0].grid(True, alpha=0.3)
-    axes[1].plot([r["eps"] for r in na_recs], [r["E_int_SU2"] for r in na_recs], "m-o", lw=2.3, label="Non-Abelian SU(2) (~ eps^4)")
-    axes[1].plot([r["eps"] for r in na_recs], [r["E_int_U1"] for r in na_recs], "c--x", label="Abelian U(1) Control (0)")
-    axes[1].set_title("2. Non-Abelian Yang-Mills Self-Interaction"); axes[1].legend(); axes[1].grid(True, alpha=0.3)
+    axes[0].plot(vs, [r["W_shift"] for r in sweep], "ro", ms=7.5, label=f"Off-Diag W+- d(om^2) (Err={max_higgs_err:.1e})")
+    axes[0].plot(vs, [r["exact_g2_v2"] for r in sweep], "k--", lw=1.8, label="Exact Matrix Higgs g^2 v^2")
+    axes[0].plot(vs, [r["photon_shift"] for r in sweep], "b-s", ms=5.5, label=f"Diag U(1)xU(1) Photons (Drift={max_ph_drift:.1e})")
+    axes[0].set_title("1. Coulomb-Branch Higgs Mass^2 Splitting\n(External Brane Separation v; U(2) -> U(1)xU(1))")
+    axes[0].set_xlabel("Brane Separation VEV v"); axes[0].set_ylabel("Mass-Squared Shift d(omega^2)")
+    axes[0].legend(fontsize=8); axes[0].grid(True, alpha=0.3)
+
+    # Panel 2: Mode-tracked branches (zero zigzag: explicit diagonal vs off-diagonal lowest & 1st KK branches)
+    axes[1].plot(vs, [r["photon_om2"] for r in sweep], "b-o", lw=2.2, label="Diag U(1)xU(1) Lowest (om^2 = mu^2 = 1)")
+    axes[1].plot(vs, [r["W_om2"] for r in sweep], "r-s", lw=2.2, label="Off-Diag W+- Lowest (mu^2 + g^2 v^2)")
+    axes[1].plot(vs, [r["kk_diag_om2"] for r in sweep], "b--^", lw=1.6, alpha=0.75, label="Diag 1st KK Branch (Unshifted)")
+    axes[1].plot(vs, [r["kk_off_om2"] for r in sweep], "r--v", lw=1.6, alpha=0.75, label="Off-Diag 1st KK Branch (+g^2 v^2)")
+    axes[1].set_title("2. Tracked Gauge & KK Spectrum vs VEV v\n(4-Fold U(2) Coincident Degeneracy Splits Cleanly)")
+    axes[1].set_xlabel("Brane Separation VEV v"); axes[1].set_ylabel("Physical Mode Frequency Squared omega^2")
+    axes[1].legend(fontsize=7.8, loc="upper left"); axes[1].grid(True, alpha=0.3)
+
+    axes[2].plot([r["eps"] for r in na_recs], [r["E_int_SU2"] for r in na_recs], "m-o", lw=2.3, label="Non-Abelian SU(2) (~ eps^4)")
+    axes[2].plot([r["eps"] for r in na_recs], [r["E_int_U1"] for r in na_recs], "c--x", lw=2.0, label="Abelian U(1) Control (= 0)")
+    axes[2].set_title("3. Non-Abelian Yang-Mills Quartic Self-Interaction\n(Non-Commuting SU(2) vs Abelian U(1) Control)")
+    axes[2].set_xlabel("Gauge Field Amplitude eps"); axes[2].set_ylabel("Quartic Interaction Energy E_int")
+    axes[2].legend(fontsize=8); axes[2].grid(True, alpha=0.3)
+
     plt.tight_layout(rect=[0, 0, 1, 0.92]); plt.savefig(os.path.join(out_dir, "phase3c_gauge_dashboard.png"), dpi=150); plt.close(fig)
 
     ram_mb, vram_mb = guard.check_runtime()

@@ -1,6 +1,6 @@
 # Architecture & Mathematical Audit Notes (`genesis_rigorous`)
 
-本ドキュメントは、統合パッケージ `genesis_rigorous/` の数理構造・設計思想・安全ガードの要点をまとめた技術ノートです。詳細な理論仕様および 5 つの厳禁事項は [EMERGENT_SPACETIME_RESEARCH_SPEC.md](../EMERGENT_SPACETIME_RESEARCH_SPEC.md) を参照してください。
+本ドキュメントは、統合パッケージ `genesis_rigorous/` の数理構造・設計思想・安全ガードの要点をまとめた技術ノートです。詳細な理論仕様および 5 つの厳禁事項は [EMERGENT_SPACETIME_RESEARCH_SPEC.md](EMERGENT_SPACETIME_RESEARCH_SPEC.md) を参照してください。
 
 ## 1. モジュール責務分離
 
