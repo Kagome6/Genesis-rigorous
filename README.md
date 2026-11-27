@@ -25,6 +25,9 @@
 
 **Project Genesis-Rigorous v1.0.2** は、個人向け GPU（NVIDIA RTX 3060 12GB、計算時間 数秒〜数分）上で、Zero-Cheat・対照実験必須・20 項目自動監査付きでこれらを一貫検証するための計算物理テストベッドです。`v1.0.1` に対する独立査読で指摘された 3 つの本質的課題（① $k=0$ トレースモード偽陽性と $N$ スケーリング欠如、② 深い古典領域・非一重項平均場への限定、③ 汎用弾性膜コントロールの不足）を解決しています。そして、本検証論文の本丸は球面の誕生そのものではなく、**生まれた球面の上で”量子エンタングルメントがどう振る舞うか（2024〜2025年にS. Hartnollらが開拓している最新領域）”**や「少なくとも2次元球面上での物質同士が引き合う効果の正体は重力ではなく、ゴム膜のたわみ効果であること。」を検算することにある。
 
+※ここでの Rigorous とは、未知の理論の完全証明や、1ミリの近似も許さない定理の証明等を意味するのではなく、『すべての計算を自動テスト・対照実験・自己反証で監査したい（rigorous verification / auditing）』という方針やできるだけ目指している姿勢を指す。
+※Here, "Rigorous" doesn't refer to the complete proof of an unknown theory or "proof of a theorem that doesn't allow even a millimeter of approximation," but rather to the policy or the attitude of "wanting to audit all calculations with automated testing, controlled experiments, and self-falsification (rigorous verification/auditing)."
+
 > **本研究の誠実な位置づけ**
 > 本プロジェクトは「新しい量子重力理論の提唱」や「標準模型の第一原理導出」ではなく、1980–2025 年の先行理論研究（Madore 1992, Myers 1999, Azuma et al. 2004, Kawahara–Nishimura–Takeuchi 2007, Berenstein–Dzienkowski 2012, Ishiki 2015, Han–Hartnoll 2020, Frenkel 2024, Fliss–Frenkel–Hartnoll–Soni 2025, Steinacker 2024, Grosse–Klimčík–Prešnajder 1996, Balachandran–Immirzi 2003 等）の核心機構を単一コード基盤上で統合・数値監査し、個人 PC で再現可能な形で検証した **計算物理ベンチマーク・再現テストベッド** です。
 
